@@ -1,0 +1,517 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Helvetica Neue'; color: #2a2c33; -webkit-text-stroke: #2a2c33; background-color: #ffffff}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Helvetica Neue'; color: #db3f39; -webkit-text-stroke: #db3f39; background-color: #ffffff}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Helvetica Neue'; color: #42933e; -webkit-text-stroke: #42933e; background-color: #ffffff}
+    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Helvetica Neue'; color: #2a2c33; -webkit-text-stroke: #2a2c33; background-color: #ffffff; min-height: 16.0px}
+    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Helvetica Neue'; color: #8f9096; -webkit-text-stroke: #8f9096; background-color: #ffffff}
+    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Helvetica Neue'; color: #325eee; -webkit-text-stroke: #325eee; background-color: #ffffff}
+    span.s1 {font-kerning: none}
+    span.s2 {font-kerning: none; color: #db3f39; -webkit-text-stroke: 0px #db3f39}
+    span.s3 {font-kerning: none; color: #a75705; -webkit-text-stroke: 0px #a75705}
+    span.s4 {font-kerning: none; color: #42933e; -webkit-text-stroke: 0px #42933e}
+    span.s5 {font-kerning: none; color: #2a2c33; -webkit-text-stroke: 0px #2a2c33}
+    span.s6 {font-kerning: none; color: #930093; -webkit-text-stroke: 0px #930093}
+    span.s7 {font-kerning: none; color: #325eee; -webkit-text-stroke: 0px #325eee}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;</span><span class="s2">html </span><span class="s3">lang</span><span class="s1">="</span><span class="s4">en</span><span class="s1">"&gt;</span></p>
+<p class="p2"><span class="s5">&lt;</span><span class="s1">head</span><span class="s5">&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;</span><span class="s2">meta </span><span class="s3">charset</span><span class="s1">="</span><span class="s4">UTF-8</span><span class="s1">"&gt;</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">  </span>&lt;</span><span class="s2">meta </span><span class="s3">name</span><span class="s5">="</span><span class="s1">viewport</span><span class="s5">"</span><span class="s2"> </span><span class="s3">content</span><span class="s5">="</span><span class="s1">width=device-width, initial-scale=1.0</span><span class="s5">"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;</span><span class="s2">title</span><span class="s1">&gt;Timesheet Tracker&lt;/</span><span class="s2">title</span><span class="s1">&gt;</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">  </span>&lt;</span><span class="s2">script </span><span class="s3">src</span><span class="s5">="</span><span class="s1">https://cdn.tailwindcss.com</span><span class="s5">"&gt;&lt;/</span><span class="s2">script</span><span class="s5">&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;</span><span class="s2">script </span><span class="s3">type</span><span class="s1">="</span><span class="s4">module</span><span class="s1">"&gt;</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s6">import</span><span class="s5"> { initializeApp } </span><span class="s6">from</span><span class="s5"> </span><span class="s1">'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'</span><span class="s5">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">import</span><span class="s1"> { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } </span><span class="s6">from</span><span class="s1"> </span><span class="s4">'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'</span><span class="s1">;</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">const</span><span class="s1"> firebaseConfig </span><span class="s7">=</span><span class="s1"> {</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">      </span></span><span class="s2">apiKey</span><span class="s7">:</span><span class="s5"> </span><span class="s1">"AIzaSyC6FbeLdjgFf0YMRPpuqfrBr_ZkDQ0jtYk"</span><span class="s5">,</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">      </span></span><span class="s2">authDomain</span><span class="s7">:</span><span class="s5"> </span><span class="s1">"timesheet-tracker-40ffb.firebaseapp.com"</span><span class="s5">,</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">      </span></span><span class="s2">projectId</span><span class="s7">:</span><span class="s5"> </span><span class="s1">"timesheet-tracker-40ffb"</span><span class="s5">,</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">      </span></span><span class="s2">storageBucket</span><span class="s7">:</span><span class="s5"> </span><span class="s1">"timesheet-tracker-40ffb.firebasestorage.app"</span><span class="s5">,</span></p>
+<p class="p2"><span class="s5"><span class="Apple-converted-space">      </span></span><span class="s1">messagingSenderId</span><span class="s7">:</span><span class="s5"> </span><span class="s4">"90174310089"</span><span class="s5">,</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">      </span></span><span class="s2">appId</span><span class="s7">:</span><span class="s5"> </span><span class="s1">"1:90174310089:web:6b73b4fda255f24bdb6f18"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">const</span><span class="s1"> app </span><span class="s7">=</span><span class="s1"> </span><span class="s7">initializeApp</span><span class="s1">(firebaseConfig);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">const</span><span class="s1"> db </span><span class="s7">=</span><span class="s1"> </span><span class="s7">getFirestore</span><span class="s1">(app);</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">const</span><span class="s1"> rates </span><span class="s7">=</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s2">'Kelly'</span><span class="s7">:</span><span class="s1"> </span><span class="s3">50</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s2">'Mum'</span><span class="s7">:</span><span class="s1"> </span><span class="s3">50</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s2">'Nicki'</span><span class="s7">:</span><span class="s1"> </span><span class="s3">60</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">let</span><span class="s1"> entries </span><span class="s7">=</span><span class="s1"> [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">let</span><span class="s1"> materials </span><span class="s7">=</span><span class="s1"> [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">let</span><span class="s1"> activeTab </span><span class="s7">=</span><span class="s1"> </span><span class="s4">'time'</span><span class="s1">;</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p5"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s1">// Load entries from Firebase</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">const</span><span class="s1"> entriesQuery </span><span class="s7">=</span><span class="s1"> </span><span class="s7">query</span><span class="s1">(</span><span class="s7">collection</span><span class="s1">(db, </span><span class="s4">'entries'</span><span class="s1">), </span><span class="s7">orderBy</span><span class="s1">(</span><span class="s4">'date'</span><span class="s1">, </span><span class="s4">'desc'</span><span class="s1">));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">onSnapshot</span><span class="s1">(entriesQuery, (snapshot) </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>entries </span><span class="s7">=</span><span class="s1"> [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>snapshot.</span><span class="s7">forEach</span><span class="s1">((doc) </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>entries.</span><span class="s7">push</span><span class="s1">({ </span><span class="s2">id</span><span class="s7">:</span><span class="s1"> doc.id, </span><span class="s7">...</span><span class="s1">doc.</span><span class="s7">data</span><span class="s1">() });</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s7">render</span><span class="s1">();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>});</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p5"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s1">// Load materials from Firebase</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">const</span><span class="s1"> materialsQuery </span><span class="s7">=</span><span class="s1"> </span><span class="s7">query</span><span class="s1">(</span><span class="s7">collection</span><span class="s1">(db, </span><span class="s4">'materials'</span><span class="s1">));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">onSnapshot</span><span class="s1">(materialsQuery, (snapshot) </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>materials </span><span class="s7">=</span><span class="s1"> [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>snapshot.</span><span class="s7">forEach</span><span class="s1">((doc) </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>materials.</span><span class="s7">push</span><span class="s1">({ </span><span class="s2">id</span><span class="s7">:</span><span class="s1"> doc.id, </span><span class="s7">...</span><span class="s1">doc.</span><span class="s7">data</span><span class="s1">() });</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s7">render</span><span class="s1">();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>});</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">window</span><span class="s1">.addEntry </span><span class="s7">=</span><span class="s1"> </span><span class="s6">async</span><span class="s1"> () </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> newEntry </span><span class="s7">=</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">date</span><span class="s7">:</span><span class="s1"> </span><span class="s4">''</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">person</span><span class="s7">:</span><span class="s1"> </span><span class="s4">'Kelly'</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">startTime</span><span class="s7">:</span><span class="s1"> </span><span class="s4">''</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">endTime</span><span class="s7">:</span><span class="s1"> </span><span class="s4">''</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">hours</span><span class="s7">:</span><span class="s1"> </span><span class="s3">0</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">notes</span><span class="s7">:</span><span class="s1"> </span><span class="s4">''</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">paid</span><span class="s7">:</span><span class="s1"> </span><span class="s3">false</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">createdAt</span><span class="s7">:</span><span class="s1"> </span><span class="s6">new</span><span class="s1"> </span><span class="s3">Date</span><span class="s1">().</span><span class="s7">toISOString</span><span class="s1">()</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">try</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">await</span><span class="s1"> </span><span class="s7">addDoc</span><span class="s1">(</span><span class="s7">collection</span><span class="s1">(db, </span><span class="s4">'entries'</span><span class="s1">), newEntry);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} </span><span class="s6">catch</span><span class="s1"> (error) {</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">        </span></span><span class="s3">console</span><span class="s5">.</span><span class="s7">error</span><span class="s5">(</span><span class="s1">'Error adding entry:'</span><span class="s5">, error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">window</span><span class="s1">.addMaterial </span><span class="s7">=</span><span class="s1"> </span><span class="s6">async</span><span class="s1"> () </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> newMaterial </span><span class="s7">=</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">person</span><span class="s7">:</span><span class="s1"> </span><span class="s4">'Kelly'</span><span class="s1">,</span></p>
+<p class="p2"><span class="s5"><span class="Apple-converted-space">        </span></span><span class="s1">description</span><span class="s7">:</span><span class="s5"> </span><span class="s4">''</span><span class="s5">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">amount</span><span class="s7">:</span><span class="s1"> </span><span class="s3">0</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">paid</span><span class="s7">:</span><span class="s1"> </span><span class="s3">false</span><span class="s1">,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s2">createdAt</span><span class="s7">:</span><span class="s1"> </span><span class="s6">new</span><span class="s1"> </span><span class="s3">Date</span><span class="s1">().</span><span class="s7">toISOString</span><span class="s1">()</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">try</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">await</span><span class="s1"> </span><span class="s7">addDoc</span><span class="s1">(</span><span class="s7">collection</span><span class="s1">(db, </span><span class="s4">'materials'</span><span class="s1">), newMaterial);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} </span><span class="s6">catch</span><span class="s1"> (error) {</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">        </span></span><span class="s3">console</span><span class="s5">.</span><span class="s7">error</span><span class="s5">(</span><span class="s1">'Error adding material:'</span><span class="s5">, error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">window</span><span class="s1">.updateEntry </span><span class="s7">=</span><span class="s1"> </span><span class="s6">async</span><span class="s1"> (id, field, value) </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> entry </span><span class="s7">=</span><span class="s1"> entries.</span><span class="s7">find</span><span class="s1">(e </span><span class="s7">=&gt;</span><span class="s1"> e.id </span><span class="s7">===</span><span class="s1"> id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> updated </span><span class="s7">=</span><span class="s1"> { </span><span class="s7">...</span><span class="s1">entry, [field]</span><span class="s7">:</span><span class="s1"> value };</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">if</span><span class="s1"> (field </span><span class="s7">===</span><span class="s1"> </span><span class="s4">'startTime'</span><span class="s1"> </span><span class="s7">||</span><span class="s1"> field </span><span class="s7">===</span><span class="s1"> </span><span class="s4">'endTime'</span><span class="s1">) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">if</span><span class="s1"> (updated.startTime </span><span class="s7">&amp;&amp;</span><span class="s1"> updated.endTime) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span></span><span class="s6">const</span><span class="s1"> start </span><span class="s7">=</span><span class="s1"> </span><span class="s7">parseTime</span><span class="s1">(updated.startTime);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span></span><span class="s6">const</span><span class="s1"> end </span><span class="s7">=</span><span class="s1"> </span><span class="s7">parseTime</span><span class="s1">(updated.endTime);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>updated.hours </span><span class="s7">=</span><span class="s1"> </span><span class="s3">Math</span><span class="s1">.</span><span class="s7">round</span><span class="s1">((end </span><span class="s7">-</span><span class="s1"> start) </span><span class="s7">*</span><span class="s1"> </span><span class="s3">10</span><span class="s1">) </span><span class="s7">/</span><span class="s1"> </span><span class="s3">10</span><span class="s1">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">try</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">const</span><span class="s1"> entryRef </span><span class="s7">=</span><span class="s1"> </span><span class="s7">doc</span><span class="s1">(db, </span><span class="s4">'entries'</span><span class="s1">, id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">await</span><span class="s1"> </span><span class="s7">updateDoc</span><span class="s1">(entryRef, updated);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} </span><span class="s6">catch</span><span class="s1"> (error) {</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">        </span></span><span class="s3">console</span><span class="s5">.</span><span class="s7">error</span><span class="s5">(</span><span class="s1">'Error updating entry:'</span><span class="s5">, error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">window</span><span class="s1">.updateMaterial </span><span class="s7">=</span><span class="s1"> </span><span class="s6">async</span><span class="s1"> (id, field, value) </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> material </span><span class="s7">=</span><span class="s1"> materials.</span><span class="s7">find</span><span class="s1">(m </span><span class="s7">=&gt;</span><span class="s1"> m.id </span><span class="s7">===</span><span class="s1"> id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> updated </span><span class="s7">=</span><span class="s1"> { </span><span class="s7">...</span><span class="s1">material, [field]</span><span class="s7">:</span><span class="s1"> value };</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">try</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">const</span><span class="s1"> materialRef </span><span class="s7">=</span><span class="s1"> </span><span class="s7">doc</span><span class="s1">(db, </span><span class="s4">'materials'</span><span class="s1">, id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">await</span><span class="s1"> </span><span class="s7">updateDoc</span><span class="s1">(materialRef, updated);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} </span><span class="s6">catch</span><span class="s1"> (error) {</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">        </span></span><span class="s3">console</span><span class="s5">.</span><span class="s7">error</span><span class="s5">(</span><span class="s1">'Error updating material:'</span><span class="s5">, error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">window</span><span class="s1">.deleteEntry </span><span class="s7">=</span><span class="s1"> </span><span class="s6">async</span><span class="s1"> (id) </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">try</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">await</span><span class="s1"> </span><span class="s7">deleteDoc</span><span class="s1">(</span><span class="s7">doc</span><span class="s1">(db, </span><span class="s4">'entries'</span><span class="s1">, id));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} </span><span class="s6">catch</span><span class="s1"> (error) {</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">        </span></span><span class="s3">console</span><span class="s5">.</span><span class="s7">error</span><span class="s5">(</span><span class="s1">'Error deleting entry:'</span><span class="s5">, error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">window</span><span class="s1">.deleteMaterial </span><span class="s7">=</span><span class="s1"> </span><span class="s6">async</span><span class="s1"> (id) </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">try</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">await</span><span class="s1"> </span><span class="s7">deleteDoc</span><span class="s1">(</span><span class="s7">doc</span><span class="s1">(db, </span><span class="s4">'materials'</span><span class="s1">, id));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} </span><span class="s6">catch</span><span class="s1"> (error) {</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">        </span></span><span class="s3">console</span><span class="s5">.</span><span class="s7">error</span><span class="s5">(</span><span class="s1">'Error deleting material:'</span><span class="s5">, error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">window</span><span class="s1">.setActiveTab </span><span class="s7">=</span><span class="s1"> (tab) </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>activeTab </span><span class="s7">=</span><span class="s1"> tab;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s7">render</span><span class="s1">();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">function</span><span class="s1"> </span><span class="s7">parseTime</span><span class="s1">(timeStr) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> cleaned </span><span class="s7">=</span><span class="s1"> timeStr.</span><span class="s7">replace</span><span class="s1">(</span><span class="s4">/\s/g</span><span class="s1">, </span><span class="s4">''</span><span class="s1">);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">let</span><span class="s1"> hours </span><span class="s7">=</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">let</span><span class="s1"> minutes </span><span class="s7">=</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">if</span><span class="s1"> (cleaned.</span><span class="s7">includes</span><span class="s1">(</span><span class="s4">':'</span><span class="s1">)) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">const</span><span class="s1"> parts </span><span class="s7">=</span><span class="s1"> cleaned.</span><span class="s7">split</span><span class="s1">(</span><span class="s4">':'</span><span class="s1">);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>hours </span><span class="s7">=</span><span class="s1"> </span><span class="s7">parseInt</span><span class="s1">(parts[</span><span class="s3">0</span><span class="s1">]) </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>minutes </span><span class="s7">=</span><span class="s1"> </span><span class="s7">parseInt</span><span class="s1">(parts[</span><span class="s3">1</span><span class="s1">]) </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} </span><span class="s6">else</span><span class="s1"> </span><span class="s6">if</span><span class="s1"> (cleaned.</span><span class="s7">includes</span><span class="s1">(</span><span class="s4">'.'</span><span class="s1">)) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">const</span><span class="s1"> parts </span><span class="s7">=</span><span class="s1"> cleaned.</span><span class="s7">split</span><span class="s1">(</span><span class="s4">'.'</span><span class="s1">);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>hours </span><span class="s7">=</span><span class="s1"> </span><span class="s7">parseInt</span><span class="s1">(parts[</span><span class="s3">0</span><span class="s1">]) </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>minutes </span><span class="s7">=</span><span class="s1"> </span><span class="s7">parseInt</span><span class="s1">(parts[</span><span class="s3">1</span><span class="s1">]) </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} </span><span class="s6">else</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>hours </span><span class="s7">=</span><span class="s1"> </span><span class="s7">parseInt</span><span class="s1">(cleaned) </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">if</span><span class="s1"> (hours </span><span class="s7">&gt;=</span><span class="s1"> </span><span class="s3">24</span><span class="s1">) hours </span><span class="s7">=</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">return</span><span class="s1"> hours </span><span class="s7">+</span><span class="s1"> (minutes </span><span class="s7">/</span><span class="s1"> </span><span class="s3">60</span><span class="s1">);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p6"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s6">function</span><span class="s5"> </span><span class="s1">calculateTotals</span><span class="s5">() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> byPerson </span><span class="s7">=</span><span class="s1"> {};</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>entries.</span><span class="s7">forEach</span><span class="s1">(entry </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">if</span><span class="s1"> (</span><span class="s7">!</span><span class="s1">byPerson[entry.person]) {</span></p>
+<p class="p2"><span class="s5"><span class="Apple-converted-space">          </span>byPerson[entry.person] </span><span class="s7">=</span><span class="s5"> { </span><span class="s1">hours</span><span class="s7">:</span><span class="s5"> </span><span class="s3">0</span><span class="s5">, </span><span class="s1">unpaidHours</span><span class="s7">:</span><span class="s5"> </span><span class="s3">0</span><span class="s5">, </span><span class="s1">total</span><span class="s7">:</span><span class="s5"> </span><span class="s3">0</span><span class="s5">, </span><span class="s1">unpaidTotal</span><span class="s7">:</span><span class="s5"> </span><span class="s3">0</span><span class="s5">, </span><span class="s1">materials</span><span class="s7">:</span><span class="s5"> </span><span class="s3">0</span><span class="s5">, </span><span class="s1">unpaidMaterials</span><span class="s7">:</span><span class="s5"> </span><span class="s3">0</span><span class="s5"> };</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>byPerson[entry.person].hours </span><span class="s7">+=</span><span class="s1"> entry.hours </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>byPerson[entry.person].total </span><span class="s7">+=</span><span class="s1"> (entry.hours </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">) </span><span class="s7">*</span><span class="s1"> rates[entry.person];</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">if</span><span class="s1"> (</span><span class="s7">!</span><span class="s1">entry.paid) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>byPerson[entry.person].unpaidHours </span><span class="s7">+=</span><span class="s1"> entry.hours </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>byPerson[entry.person].unpaidTotal </span><span class="s7">+=</span><span class="s1"> (entry.hours </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">) </span><span class="s7">*</span><span class="s1"> rates[entry.person];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>});</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>materials.</span><span class="s7">forEach</span><span class="s1">(material </span><span class="s7">=&gt;</span><span class="s1"> {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">if</span><span class="s1"> (</span><span class="s7">!</span><span class="s1">byPerson[material.person]) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>byPerson[material.person] </span><span class="s7">=</span><span class="s1"> { </span><span class="s2">hours</span><span class="s7">:</span><span class="s1"> </span><span class="s3">0</span><span class="s1">, </span><span class="s2">unpaidHours</span><span class="s7">:</span><span class="s1"> </span><span class="s3">0</span><span class="s1">, </span><span class="s2">total</span><span class="s7">:</span><span class="s1"> </span><span class="s3">0</span><span class="s1">, </span><span class="s2">unpaidTotal</span><span class="s7">:</span><span class="s1"> </span><span class="s3">0</span><span class="s1">, </span><span class="s2">materials</span><span class="s7">:</span><span class="s1"> </span><span class="s3">0</span><span class="s1">, </span><span class="s2">unpaidMaterials</span><span class="s7">:</span><span class="s1"> </span><span class="s3">0</span><span class="s1"> };</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">const</span><span class="s1"> amount </span><span class="s7">=</span><span class="s1"> </span><span class="s7">parseFloat</span><span class="s1">(material.amount </span><span class="s7">||</span><span class="s1"> </span><span class="s3">0</span><span class="s1">);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>byPerson[material.person].materials </span><span class="s7">+=</span><span class="s1"> amount;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>byPerson[material.person].total </span><span class="s7">+=</span><span class="s1"> amount;</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s6">if</span><span class="s1"> (</span><span class="s7">!</span><span class="s1">material.paid) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>byPerson[material.person].unpaidMaterials </span><span class="s7">+=</span><span class="s1"> amount;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>byPerson[material.person].unpaidTotal </span><span class="s7">+=</span><span class="s1"> amount;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>});</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> grandTotal </span><span class="s7">=</span><span class="s1"> </span><span class="s3">Object</span><span class="s1">.</span><span class="s7">values</span><span class="s1">(byPerson).</span><span class="s7">reduce</span><span class="s1">((sum, person) </span><span class="s7">=&gt;</span><span class="s1"> sum </span><span class="s7">+</span><span class="s1"> person.total, </span><span class="s3">0</span><span class="s1">);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> totalOwed </span><span class="s7">=</span><span class="s1"> </span><span class="s3">Object</span><span class="s1">.</span><span class="s7">values</span><span class="s1">(byPerson).</span><span class="s7">reduce</span><span class="s1">((sum, person) </span><span class="s7">=&gt;</span><span class="s1"> sum </span><span class="s7">+</span><span class="s1"> person.unpaidTotal, </span><span class="s3">0</span><span class="s1">);</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">return</span><span class="s1"> { byPerson, grandTotal, totalOwed };</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s6">function</span><span class="s1"> </span><span class="s7">render</span><span class="s1">() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s1"> totals </span><span class="s7">=</span><span class="s1"> </span><span class="s7">calculateTotals</span><span class="s1">();</span></p>
+<p class="p6"><span class="s5"><span class="Apple-converted-space">      </span></span><span class="s6">const</span><span class="s5"> app </span><span class="s1">=</span><span class="s5"> </span><span class="s1">document</span><span class="s5">.</span><span class="s1">getElementById</span><span class="s5">(</span><span class="s4">'app'</span><span class="s5">);</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>app.innerHTML </span><span class="s7">=</span><span class="s1"> `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="max-w-7xl mx-auto"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="mb-8"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;h1 class="text-4xl font-bold text-slate-800 mb-2"&gt;Timesheet Tracker&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p class="text-slate-600"&gt;Track hours and materials in one clean place&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>${Object.entries(totals.byPerson).map(([person, data]) =&gt; `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;h3 class="text-lg font-semibold text-slate-700 mb-3"&gt;${person}&lt;/h3&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;div class="space-y-2 text-sm"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;span class="text-slate-600"&gt;Hours:&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;span class="font-medium text-slate-800"&gt;${data.hours.toFixed(1)}h&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;span class="text-slate-600"&gt;Labour:&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;span class="font-medium text-slate-800"&gt;$${(data.hours * rates[person]).toFixed(2)}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>${data.materials &gt; 0 ? `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;div class="flex justify-between"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="text-slate-600"&gt;Materials:&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="font-medium text-slate-800"&gt;$${data.materials.toFixed(2)}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>` : ''}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between pt-2 border-t border-slate-200"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;span class="text-slate-600 font-medium"&gt;Total:&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;span class="font-semibold text-slate-800"&gt;$${data.total.toFixed(2)}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>${data.unpaidTotal &gt; 0 ? `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;div class="flex justify-between text-orange-600 pt-2 border-t border-orange-200"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="font-medium"&gt;Unpaid:&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="font-semibold"&gt;$${data.unpaidTotal.toFixed(2)}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>` : ''}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>`).join('')}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;div class="flex border-b border-slate-200"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;button</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>onclick="setActiveTab('time')"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>class="flex items-center gap-2 px-6 py-4 font-medium transition-colors ${activeTab === 'time' ? 'text-slate-800 border-b-2 border-slate-800' : 'text-slate-500 hover:text-slate-700'}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;circle cx="12" cy="12" r="10"&gt;&lt;/circle&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;polyline points="12 6 12 12 16 14"&gt;&lt;/polyline&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>Time Entries</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;button</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>onclick="setActiveTab('materials')"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>class="flex items-center gap-2 px-6 py-4 font-medium transition-colors ${activeTab === 'materials' ? 'text-slate-800 border-b-2 border-slate-800' : 'text-slate-500 hover:text-slate-700'}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"&gt;&lt;/path&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;polyline points="3.27 6.96 12 12.01 20.73 6.96"&gt;&lt;/polyline&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;line x1="12" y1="22.08" x2="12" y2="12"&gt;&lt;/line&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>Materials</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>${activeTab === 'time' ? `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div class="p-6 border-b border-slate-200 flex justify-between items-center"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;h2 class="text-xl font-semibold text-slate-800"&gt;Time Entries&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;button</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>onclick="addEntry()"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>class="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;line x1="12" y1="5" x2="12" y2="19"&gt;&lt;/line&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;line x1="5" y1="12" x2="19" y2="12"&gt;&lt;/line&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>Add Entry</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div class="overflow-x-auto"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;table class="w-full"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;thead class="bg-slate-50"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;tr&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;th class="px-4 py-3 text-left text-xs font-medium text-slate-600 uppercase"&gt;Date&lt;/th&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;th class="px-4 py-3 text-left text-xs font-medium text-slate-600 uppercase"&gt;Person&lt;/th&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;th class="px-4 py-3 text-left text-xs font-medium text-slate-600 uppercase"&gt;Start&lt;/th&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;th class="px-4 py-3 text-left text-xs font-medium text-slate-600 uppercase"&gt;End&lt;/th&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;th class="px-4 py-3 text-left text-xs font-medium text-slate-600 uppercase"&gt;Hours&lt;/th&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;th class="px-4 py-3 text-left text-xs font-medium text-slate-600 uppercase"&gt;Notes&lt;/th&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;th class="px-4 py-3 text-left text-xs font-medium text-slate-600 uppercase"&gt;Amount&lt;/th&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;th class="px-4 py-3 text-left text-xs font-medium text-slate-600 uppercase"&gt;Paid&lt;/th&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;th class="px-4 py-3"&gt;&lt;/th&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;/tr&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/thead&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;tbody class="divide-y divide-slate-200"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>${entries.map(entry =&gt; `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;tr class="${entry.paid ? 'bg-green-50' : ''}"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;td class="px-4 py-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;input</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>type="date"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>value="${entry.date || ''}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>onchange="updateEntry('${entry.id}', 'date', this.value)"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>/&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;/td&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;td class="px-4 py-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;select</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>value="${entry.person}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>onchange="updateEntry('${entry.id}', 'person', this.value)"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>&lt;option ${entry.person === 'Kelly' ? 'selected' : ''}&gt;Kelly&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>&lt;option ${entry.person === 'Mum' ? 'selected' : ''}&gt;Mum&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>&lt;option ${entry.person === 'Nicki' ? 'selected' : ''}&gt;Nicki&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;/select&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;/td&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;td class="px-4 py-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;input</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>type="text"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>placeholder="09:00"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>value="${entry.startTime || ''}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>onchange="updateEntry('${entry.id}', 'startTime', this.value)"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>class="border border-slate-300 rounded px-2 py-1 text-sm w-20 focus:ring-2 focus:ring-slate-400 focus:border-transparent"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>/&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;/td&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;td class="px-4 py-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;input</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>type="text"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>placeholder="17:00"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>value="${entry.endTime || ''}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>onchange="updateEntry('${entry.id}', 'endTime', this.value)"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>class="border border-slate-300 rounded px-2 py-1 text-sm w-20 focus:ring-2 focus:ring-slate-400 focus:border-transparent"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>/&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;/td&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;td class="px-4 py-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;span class="font-medium text-slate-700"&gt;${(entry.hours || 0).toFixed(1)}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;/td&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;td class="px-4 py-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;input</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>type="text"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>placeholder="Project notes"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>value="${entry.notes || ''}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>onchange="updateEntry('${entry.id}', 'notes', this.value)"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>/&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;/td&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;td class="px-4 py-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;span class="font-medium text-slate-700"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>$${((entry.hours || 0) * rates[entry.person]).toFixed(2)}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;/td&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;td class="px-4 py-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;button</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>onclick="updateEntry('${entry.id}', 'paid', ${!entry.paid})"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>class="p-1 rounded ${entry.paid ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>&lt;svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;polyline points="20 6 9 17 4 12"&gt;&lt;/polyline&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;/td&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;td class="px-4 py-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;button</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>onclick="deleteEntry('${entry.id}')"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>class="text-red-500 hover:text-red-700"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>&lt;svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;polyline points="3 6 5 6 21 6"&gt;&lt;/polyline&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"&gt;&lt;/path&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                              </span>&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;/td&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;/tr&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>`).join('')}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/tbody&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/table&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>${entries.length === 0 ? `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="text-center py-12 text-slate-400"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>No entries yet. Click "Add Entry" to get started.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>` : ''}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>` : `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div class="p-6 border-b border-slate-200 flex justify-between items-center"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;h2 class="text-xl font-semibold text-slate-800"&gt;Materials &amp; Tools&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;button</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>onclick="addMaterial()"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>class="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;line x1="12" y1="5" x2="12" y2="19"&gt;&lt;/line&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;line x1="5" y1="12" x2="19" y2="12"&gt;&lt;/line&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>Add Material</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div class="p-6 space-y-3"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>${materials.map(material =&gt; `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="flex items-center gap-4 p-4 border border-slate-200 rounded-lg ${material.paid ? 'bg-green-50' : ''}"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;select</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>value="${material.person}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>onchange="updateMaterial('${material.id}', 'person', this.value)"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>class="border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;option ${material.person === 'Kelly' ? 'selected' : ''}&gt;Kelly&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;option ${material.person === 'Mum' ? 'selected' : ''}&gt;Mum&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;option ${material.person === 'Nicki' ? 'selected' : ''}&gt;Nicki&lt;/option&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;/select&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;input</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>type="text"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>placeholder="Materials, tools, etc."</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>value="${material.description || ''}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>onchange="updateMaterial('${material.id}', 'description', this.value)"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>class="flex-1 border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>/&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;div class="flex items-center gap-2"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span class="text-slate-600"&gt;$&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;input</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>type="number"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>step="0.01"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>placeholder="0.00"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>value="${material.amount || ''}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>onchange="updateMaterial('${material.id}', 'amount', this.value)"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>class="w-28 border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>/&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;button</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>onclick="updateMaterial('${material.id}', 'paid', ${!material.paid})"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>class="p-2 rounded ${material.paid ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;polyline points="20 6 9 17 4 12"&gt;&lt;/polyline&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;button</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>onclick="deleteMaterial('${material.id}')"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>class="text-red-500 hover:text-red-700"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;polyline points="3 6 5 6 21 6"&gt;&lt;/polyline&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                          </span>&lt;path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"&gt;&lt;/path&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>`).join('')}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>${materials.length === 0 ? `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div class="text-center py-12 text-slate-400"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                      </span>No materials yet. Click "Add Material" to track materials and tools.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>` : ''}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>`}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="mt-8 bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl shadow-lg p-8 text-white"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;div class="flex justify-between items-center"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;p class="text-slate-300 text-sm uppercase tracking-wide mb-1"&gt;Total Amount Owed&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;p class="text-5xl font-bold"&gt;$${totals.totalOwed.toFixed(2)}&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div class="text-right"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;p class="text-slate-300 text-sm mb-2"&gt;Grand Total (All Time)&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;p class="text-2xl font-semibold"&gt;$${totals.grandTotal.toFixed(2)}&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p4"><span class="s1"></span><br></p>
+<p class="p5"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s1">// Initial render</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s7">setTimeout</span><span class="s1">(render, </span><span class="s3">1000</span><span class="s1">);</span></p>
+<p class="p2"><span class="s5"><span class="Apple-converted-space">  </span>&lt;/</span><span class="s1">script</span><span class="s5">&gt;</span></p>
+<p class="p2"><span class="s5">&lt;/</span><span class="s1">head</span><span class="s5">&gt;</span></p>
+<p class="p2"><span class="s5">&lt;</span><span class="s1">body</span><span class="s5">&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;</span><span class="s2">div </span><span class="s3">id</span><span class="s1">="</span><span class="s4">app</span><span class="s1">"&gt;</span></p>
+<p class="p3"><span class="s5"><span class="Apple-converted-space">    </span>&lt;</span><span class="s2">div </span><span class="s3">class</span><span class="s5">="</span><span class="s1">min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center</span><span class="s5">"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;</span><span class="s2">div </span><span class="s3">class</span><span class="s1">="</span><span class="s4">text-slate-600 text-lg</span><span class="s1">"&gt;Loading timesheet...&lt;/</span><span class="s2">div</span><span class="s1">&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/</span><span class="s2">div</span><span class="s1">&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/</span><span class="s2">div</span><span class="s1">&gt;</span></p>
+<p class="p2"><span class="s5">&lt;/</span><span class="s1">body</span><span class="s5">&gt;</span></p>
+<p class="p2"><span class="s5">&lt;/</span><span class="s1">html</span><span class="s5">&gt;</span></p>
+</body>
+</html>
