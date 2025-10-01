@@ -6,6 +6,12 @@
   <title>Timesheet Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="module">
+    const correctPassword = "tereo";
+  const enteredPassword = prompt("Enter password to access timesheet:");
+  if (enteredPassword !== correctPassword) {
+    document.body.innerHTML = "<div style='text-align:center;padding:50px;font-family:sans-serif;color:#64748b;'>Access denied</div>";
+    throw new Error("Access denied");
+  }
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
