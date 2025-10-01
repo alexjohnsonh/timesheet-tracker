@@ -6,26 +6,25 @@
   <title>Timesheet Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="module">
-   const correctPassword = "tereo";
-  const enteredPassword = prompt("Enter password to access timesheet:");
-  if (enteredPassword !== correctPassword) {
-    document.body.innerHTML = `
-      <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center max-w-md">
-          <svg class="w-16 h-16 mx-auto mb-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <h1 class="text-2xl font-bold text-slate-800 mb-2">Access Denied</h1>
-          <p class="text-slate-600">Incorrect password. Please refresh to try again.</p>
-        </div>
-      </div>
-    `;
-    throw new Error("Access denied");
+  let isAuthenticated = false;
+  
+  function checkPassword() {
+    const password = document.getElementById('passwordInput').value;
+    if (password === 'tereo') {
+      isAuthenticated = true;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      initApp();
+    } else {
+      document.getElementById('errorMessage').style.display = 'block';
+    }
   }
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  
+  window.checkPassword = checkPassword;
+  
+  async function initApp() {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+    const { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
     const firebaseConfig = {
       apiKey: "AIzaSyC6FbeLdjgFf0YMRPpuqfrBr_ZkDQ0jtYk",
@@ -761,7 +760,35 @@
   </script>
 </head>
 <body>
-  <div id="app">
+  <!-- Login Screen -->
+  <div id="loginScreen" class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+    <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-8 max-w-md w-full">
+      <h1 class="text-3xl font-bold text-slate-800 mb-2 text-center">Timesheet Tracker</h1>
+      <p class="text-slate-600 text-center mb-6">Enter password to continue</p>
+      
+      <input 
+        type="password" 
+        id="passwordInput"
+        placeholder="Enter password"
+        onkeypress="if(event.key==='Enter') checkPassword()"
+        class="w-full border border-slate-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent mb-4"
+      />
+      
+      <button 
+        onclick="checkPassword()"
+        class="w-full bg-slate-800 text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors font-medium"
+      >
+        Login
+      </button>
+      
+      <p id="errorMessage" style="display:none;" class="text-red-500 text-sm mt-3 text-center font-semibold">
+        Incorrect password. Please try again.
+      </p>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" style="display:none;">
     <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
       <div class="text-slate-600 text-lg">Loading timesheet...</div>
     </div>
