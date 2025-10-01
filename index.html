@@ -243,23 +243,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
       return { byPerson, grandTotal, totalOwed, afterTax };
     }
-
-const grandTotal = Object.values(byPerson).reduce((sum, person) => sum + person.total, 0);
-      const totalOwed = Object.values(byPerson).reduce((sum, person) => sum + person.unpaidTotal, 0);
-
-      // Calculate after-tax: 25% tax only on labour, not materials
-      let unpaidLabour = 0;
-      let unpaidMaterials = 0;
-      entries.forEach(entry => {
-        if (!entry.paid) {
-          unpaidLabour += (entry.hours || 0) * rates[entry.person];
-        }
-      });
-      materials.forEach(material => {
-        if (!material.paid) {
-          unpaidMaterials += parseFloat(material.amount || 0);
-        }
-      });
    
     function groupEntriesByMonth(entriesList) {
       const grouped = {};
