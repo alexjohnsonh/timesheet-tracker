@@ -207,7 +207,6 @@
         }
         const amount = parseFloat(material.amount || 0);
         byPerson[material.person].materials += amount;
-        byPerson[material.person].total += amount;
         
         if (!material.paid) {
           byPerson[material.person].unpaidMaterials += amount;
@@ -392,6 +391,8 @@
                               <option ${entry.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
                               <option ${entry.person === 'Mum' ? 'selected' : ''}>Mum</option>
                               <option ${entry.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
+                              <option ${entry.person === 'ATS' ? 'selected' : ''}>ATS</option>
+                           <option ${entry.person === 'Estate' ? 'selected' : ''}>Estate</option>
                             </select>
                           </td>
                           <td class="px-4 py-3">
@@ -769,7 +770,12 @@
     <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-8 max-w-md w-full">
       <h1 class="text-3xl font-bold text-slate-800 mb-2 text-center">Timesheet Tracker</h1>
       <p class="text-slate-600 text-center mb-6">Enter password to continue</p>
-      
+      <input 
+  type="text" 
+  name="username"
+  autocomplete="username"
+  style="display:none;"
+/>
       <input 
         type="password" 
         id="passwordInput"
