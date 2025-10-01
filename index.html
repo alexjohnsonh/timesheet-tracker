@@ -224,11 +224,25 @@ window.addEventListener('DOMContentLoaded', function() {
         }
       });
 
-      const grandTotal = Object.values(byPerson).reduce((sum, person) => sum + person.total, 0);
-      const totalOwed = Object.values(byPerson).reduce((sum, person) => sum + person.unpaidTotal, 0);
+    const grandTotal = Object.values(byPerson).reduce((sum, person) => sum + person.total, 0);
+const totalOwed = Object.values(byPerson).reduce((sum, person) => sum + person.unpaidTotal, 0);
 
-      return { byPerson, grandTotal, totalOwed };
-    }
+// Calculate after-tax: 25% tax only on labour, not materials
+let unpaidLabour = 0;
+let unpaidMaterials = 0;
+entries.forEach(entry => {
+  if (!entry.paid) {
+    unpaidLabour += (entry.hours || 0) * rates[entry.person];
+  }
+});
+materials.forEach(material => {
+  if (!material.paid) {
+    unpaidMaterials += parseFloat(material.amount || 0);
+  }
+});
+const afterTax = (unpaidLabour * 0.75) + unpaidMaterials;
+
+return { byPerson, grandTotal, totalOwed, afterTax };
 
     function groupEntriesByMonth(entriesList) {
       const grouped = {};
@@ -784,7 +798,7 @@ const paidEntriesByMonth = groupEntriesByMonth(paidEntries);
       <p class="text-slate-300 text-xs md:text-sm uppercase tracking-wide mb-1">Total Amount Owed (Gross)</p>
       <p class="text-3xl md:text-5xl font-bold">$${totals.totalOwed.toFixed(2)}</p>
       <p class="text-slate-300 text-xs md:text-sm mt-2">After Tax (Net - 25%)</p>
-      <p class="text-2xl md:text-3xl font-semibold">$${(totals.totalOwed * 0.75).toFixed(2)}</p>
+<p class="text-2xl md:text-3xl font-semibold">$${totals.afterTax.toFixed(2)}</p>
     </div>
     <div class="md:text-right">
       <p class="text-slate-300 text-xs md:text-sm mb-2">Grand Total (All Time)</p>
