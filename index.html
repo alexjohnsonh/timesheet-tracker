@@ -30,6 +30,7 @@
     let entries = [];
     let materials = [];
     let activeTab = 'time';
+    let expandedMonths = {};
 
     // Load entries from Firebase
     const entriesQuery = query(collection(db, 'entries'), orderBy('date', 'desc'));
@@ -139,6 +140,11 @@
       render();
     };
 
+    window.toggleMonth = (monthKey) => {
+      expandedMonths[monthKey] = !expandedMonths[monthKey];
+      render();
+    };
+
     function parseTime(timeStr) {
       const cleaned = timeStr.replace(/\s/g, '');
       let hours = 0;
@@ -197,15 +203,61 @@
       return { byPerson, grandTotal, totalOwed };
     }
 
+    function groupEntriesByMonth(entriesList) {
+      const grouped = {};
+      entriesList.forEach(entry => {
+        if (entry.date) {
+          const date = new Date(entry.date);
+          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+          
+          if (!grouped[monthKey]) {
+            grouped[monthKey] = {
+              name: monthName,
+              entries: []
+            };
+          }
+          grouped[monthKey].entries.push(entry);
+        }
+      });
+      return grouped;
+    }
+
+    function groupMaterialsByMonth(materialsList) {
+      const grouped = {};
+      materialsList.forEach(material => {
+        const date = new Date(material.createdAt);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        
+        if (!grouped[monthKey]) {
+          grouped[monthKey] = {
+            name: monthName,
+            materials: []
+          };
+        }
+        grouped[monthKey].materials.push(material);
+      });
+      return grouped;
+    }
+
     function render() {
       const totals = calculateTotals();
       const app = document.getElementById('app');
       
+      const unpaidEntries = entries.filter(e => !e.paid);
+      const paidEntries = entries.filter(e => e.paid);
+      const paidEntriesByMonth = groupEntriesByMonth(paidEntries);
+      
+      const unpaidMaterials = materials.filter(m => !m.paid);
+      const paidMaterials = materials.filter(m => m.paid);
+      const paidMaterialsByMonth = groupMaterialsByMonth(paidMaterials);
+      
       app.innerHTML = `
-        <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+        <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6">
           <div class="max-w-7xl mx-auto">
             <div class="mb-8">
-              <h1 class="text-4xl font-bold text-slate-800 mb-2">Timesheet Tracker</h1>
+              <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Timesheet Tracker</h1>
               <p class="text-slate-600">Track hours and materials in one clean place</p>
             </div>
 
@@ -217,6 +269,10 @@
                     <div class="flex justify-between">
                       <span class="text-slate-600">Hours:</span>
                       <span class="font-medium text-slate-800">${data.hours.toFixed(1)}h</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-slate-600">Hourly Rate:</span>
+                      <span class="font-medium text-slate-800">$${rates[person]}/hr</span>
                     </div>
                     <div class="flex justify-between">
                       <span class="text-slate-600">Labour:</span>
@@ -247,7 +303,7 @@
               <div class="flex border-b border-slate-200">
                 <button
                   onclick="setActiveTab('time')"
-                  class="flex items-center gap-2 px-6 py-4 font-medium transition-colors ${activeTab === 'time' ? 'text-slate-800 border-b-2 border-slate-800' : 'text-slate-500 hover:text-slate-700'}"
+                  class="flex items-center gap-2 px-4 md:px-6 py-4 font-medium transition-colors ${activeTab === 'time' ? 'text-slate-800 border-b-2 border-slate-800' : 'text-slate-500 hover:text-slate-700'}"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -257,7 +313,7 @@
                 </button>
                 <button
                   onclick="setActiveTab('materials')"
-                  class="flex items-center gap-2 px-6 py-4 font-medium transition-colors ${activeTab === 'materials' ? 'text-slate-800 border-b-2 border-slate-800' : 'text-slate-500 hover:text-slate-700'}"
+                  class="flex items-center gap-2 px-4 md:px-6 py-4 font-medium transition-colors ${activeTab === 'materials' ? 'text-slate-800 border-b-2 border-slate-800' : 'text-slate-500 hover:text-slate-700'}"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -269,11 +325,11 @@
               </div>
 
               ${activeTab === 'time' ? `
-                <div class="p-6 border-b border-slate-200 flex justify-between items-center">
-                  <h2 class="text-xl font-semibold text-slate-800">Time Entries</h2>
+                <div class="p-4 md:p-6 border-b border-slate-200 flex justify-between items-center">
+                  <h2 class="text-lg md:text-xl font-semibold text-slate-800">Time Entries</h2>
                   <button
                     onclick="addEntry()"
-                    class="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors"
+                    class="flex items-center gap-2 bg-slate-800 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors text-sm md:text-base"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -299,8 +355,8 @@
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
-                      ${entries.map(entry => `
-                        <tr class="${entry.paid ? 'bg-green-50' : ''}">
+                      ${unpaidEntries.map(entry => `
+                        <tr>
                           <td class="px-4 py-3">
                             <input
                               type="date"
@@ -380,18 +436,146 @@
                       `).join('')}
                     </tbody>
                   </table>
-                  ${entries.length === 0 ? `
+                  ${unpaidEntries.length === 0 ? `
                     <div class="text-center py-12 text-slate-400">
-                      No entries yet. Click "Add Entry" to get started.
+                      No unpaid entries. Click "Add Entry" to get started.
                     </div>
                   ` : ''}
                 </div>
+
+                ${Object.keys(paidEntriesByMonth).length > 0 ? `
+                  <div class="border-t border-slate-200 bg-slate-50">
+                    <div class="p-4 md:p-6">
+                      <h3 class="text-lg font-semibold text-slate-700 mb-4">Past Paid Time Entries</h3>
+                      <div class="space-y-2">
+                        ${Object.entries(paidEntriesByMonth).sort((a, b) => b[0].localeCompare(a[0])).map(([monthKey, monthData]) => `
+                          <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                            <button
+                              onclick="toggleMonth('${monthKey}')"
+                              class="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                            >
+                              <span class="font-medium text-slate-700">${monthData.name}</span>
+                              <div class="flex items-center gap-3">
+                                <span class="text-sm text-slate-500">${monthData.entries.length} entries</span>
+                                <svg class="w-5 h-5 text-slate-400 transition-transform ${expandedMonths[monthKey] ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                              </div>
+                            </button>
+                            ${expandedMonths[monthKey] ? `
+                              <div class="border-t border-slate-200">
+                                <div class="overflow-x-auto">
+                                  <table class="w-full">
+                                    <thead class="bg-slate-50">
+                                      <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Date</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Person</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Start</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">End</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Hours</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Notes</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Amount</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-600 uppercase">Paid</th>
+                                        <th class="px-4 py-2"></th>
+                                      </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-200">
+                                      ${monthData.entries.map(entry => `
+                                        <tr class="bg-green-50">
+                                          <td class="px-4 py-2">
+                                            <input
+                                              type="date"
+                                              value="${entry.date || ''}"
+                                              onchange="updateEntry('${entry.id}', 'date', this.value)"
+                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                            />
+                                          </td>
+                                          <td class="px-4 py-2">
+                                            <select
+                                              value="${entry.person}"
+                                              onchange="updateEntry('${entry.id}', 'person', this.value)"
+                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                            >
+                                              <option ${entry.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
+                                              <option ${entry.person === 'Mum' ? 'selected' : ''}>Mum</option>
+                                              <option ${entry.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
+                                            </select>
+                                          </td>
+                                          <td class="px-4 py-2">
+                                            <input
+                                              type="text"
+                                              placeholder="09:00"
+                                              value="${entry.startTime || ''}"
+                                              onchange="updateEntry('${entry.id}', 'startTime', this.value)"
+                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-20 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                            />
+                                          </td>
+                                          <td class="px-4 py-2">
+                                            <input
+                                              type="text"
+                                              placeholder="17:00"
+                                              value="${entry.endTime || ''}"
+                                              onchange="updateEntry('${entry.id}', 'endTime', this.value)"
+                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-20 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                            />
+                                          </td>
+                                          <td class="px-4 py-2">
+                                            <span class="font-medium text-slate-700">${(entry.hours || 0).toFixed(1)}</span>
+                                          </td>
+                                          <td class="px-4 py-2">
+                                            <input
+                                              type="text"
+                                              placeholder="Project notes"
+                                              value="${entry.notes || ''}"
+                                              onchange="updateEntry('${entry.id}', 'notes', this.value)"
+                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                            />
+                                          </td>
+                                          <td class="px-4 py-2">
+                                            <span class="font-medium text-slate-700">
+                                              $${((entry.hours || 0) * rates[entry.person]).toFixed(2)}
+                                            </span>
+                                          </td>
+                                          <td class="px-4 py-2">
+                                            <button
+                                              onclick="updateEntry('${entry.id}', 'paid', ${!entry.paid})"
+                                              class="p-1 rounded ${entry.paid ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}"
+                                            >
+                                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                              </svg>
+                                            </button>
+                                          </td>
+                                          <td class="px-4 py-2">
+                                            <button
+                                              onclick="deleteEntry('${entry.id}')"
+                                              class="text-red-500 hover:text-red-700"
+                                            >
+                                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                              </svg>
+                                            </button>
+                                          </td>
+                                        </tr>
+                                      `).join('')}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            ` : ''}
+                          </div>
+                        `).join('')}
+                      </div>
+                    </div>
+                  </div>
+                ` : ''}
               ` : `
-                <div class="p-6 border-b border-slate-200 flex justify-between items-center">
-                  <h2 class="text-xl font-semibold text-slate-800">Materials & Tools</h2>
+                <div class="p-4 md:p-6 border-b border-slate-200 flex justify-between items-center">
+                  <h2 class="text-lg md:text-xl font-semibold text-slate-800">Materials & Tools</h2>
                   <button
                     onclick="addMaterial()"
-                    class="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors"
+                    class="flex items-center gap-2 bg-slate-800 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors text-sm md:text-base"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -401,9 +585,9 @@
                   </button>
                 </div>
                 
-                <div class="p-6 space-y-3">
-                  ${materials.map(material => `
-                    <div class="flex items-center gap-4 p-4 border border-slate-200 rounded-lg ${material.paid ? 'bg-green-50' : ''}">
+                <div class="p-4 md:p-6 space-y-3">
+                  ${unpaidMaterials.map(material => `
+                    <div class="flex items-center gap-4 p-4 border border-slate-200 rounded-lg">
                       <select
                         value="${material.person}"
                         onchange="updateMaterial('${material.id}', 'person', this.value)"
@@ -450,24 +634,102 @@
                       </button>
                     </div>
                   `).join('')}
-                  ${materials.length === 0 ? `
+                  ${unpaidMaterials.length === 0 ? `
                     <div class="text-center py-12 text-slate-400">
-                      No materials yet. Click "Add Material" to track materials and tools.
+                      No unpaid materials. Click "Add Material" to track materials and tools.
                     </div>
                   ` : ''}
                 </div>
+
+                ${Object.keys(paidMaterialsByMonth).length > 0 ? `
+                  <div class="border-t border-slate-200 bg-slate-50">
+                    <div class="p-4 md:p-6">
+                      <h3 class="text-lg font-semibold text-slate-700 mb-4">Past Paid Materials</h3>
+                      <div class="space-y-2">
+                        ${Object.entries(paidMaterialsByMonth).sort((a, b) => b[0].localeCompare(a[0])).map(([monthKey, monthData]) => `
+                          <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                            <button
+                              onclick="toggleMonth('materials-${monthKey}')"
+                              class="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                            >
+                              <span class="font-medium text-slate-700">${monthData.name}</span>
+                              <div class="flex items-center gap-3">
+                                <span class="text-sm text-slate-500">${monthData.materials.length} items</span>
+                                <svg class="w-5 h-5 text-slate-400 transition-transform ${expandedMonths['materials-' + monthKey] ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                              </div>
+                            </button>
+                            ${expandedMonths['materials-' + monthKey] ? `
+                              <div class="border-t border-slate-200 p-4 space-y-3">
+                                ${monthData.materials.map(material => `
+                                  <div class="flex items-center gap-4 p-4 border border-slate-200 rounded-lg bg-green-50">
+                                    <select
+                                      value="${material.person}"
+                                      onchange="updateMaterial('${material.id}', 'person', this.value)"
+                                      class="border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                    >
+                                      <option ${material.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
+                                      <option ${material.person === 'Mum' ? 'selected' : ''}>Mum</option>
+                                      <option ${material.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
+                                    </select>
+                                    <input
+                                      type="text"
+                                      placeholder="Materials, tools, etc."
+                                      value="${material.description || ''}"
+                                      onchange="updateMaterial('${material.id}', 'description', this.value)"
+                                      class="flex-1 border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                    />
+                                    <div class="flex items-center gap-2">
+                                      <span class="text-slate-600">$</span>
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        value="${material.amount || ''}"
+                                        onchange="updateMaterial('${material.id}', 'amount', this.value)"
+                                        class="w-28 border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                      />
+                                    </div>
+                                    <button
+                                      onclick="updateMaterial('${material.id}', 'paid', ${!material.paid})"
+                                      class="p-2 rounded ${material.paid ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}"
+                                    >
+                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onclick="deleteMaterial('${material.id}')"
+                                      class="text-red-500 hover:text-red-700"
+                                    >
+                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                `).join('')}
+                              </div>
+                            ` : ''}
+                          </div>
+                        `).join('')}
+                      </div>
+                    </div>
+                  </div>
+                ` : ''}
               `}
             </div>
 
-            <div class="mt-8 bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl shadow-lg p-8 text-white">
-              <div class="flex justify-between items-center">
+            <div class="mt-8 bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl shadow-lg p-6 md:p-8 text-white">
+              <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <div>
-                  <p class="text-slate-300 text-sm uppercase tracking-wide mb-1">Total Amount Owed</p>
-                  <p class="text-5xl font-bold">$${totals.totalOwed.toFixed(2)}</p>
+                  <p class="text-slate-300 text-xs md:text-sm uppercase tracking-wide mb-1">Total Amount Owed</p>
+                  <p class="text-3xl md:text-5xl font-bold">${totals.totalOwed.toFixed(2)}</p>
                 </div>
-                <div class="text-right">
-                  <p class="text-slate-300 text-sm mb-2">Grand Total (All Time)</p>
-                  <p class="text-2xl font-semibold">$${totals.grandTotal.toFixed(2)}</p>
+                <div class="md:text-right">
+                  <p class="text-slate-300 text-xs md:text-sm mb-2">Grand Total (All Time)</p>
+                  <p class="text-xl md:text-2xl font-semibold">${totals.grandTotal.toFixed(2)}</p>
                 </div>
               </div>
             </div>
