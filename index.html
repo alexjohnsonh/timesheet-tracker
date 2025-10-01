@@ -9,15 +9,25 @@
 
 <script>
   function checkPassword() {
-    const password = document.getElementById('passwordInput').value;
-    if (password === 'tereo') {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      if (window.initApp) window.initApp();
-    } else {
-      document.getElementById('errorMessage').style.display = 'block';
-    }
+  const password = document.getElementById('passwordInput').value;
+  if (password === 'tereo') {
+    localStorage.setItem('timesheetAuth', 'true');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    if (window.initApp) window.initApp();
+  } else {
+    document.getElementById('errorMessage').style.display = 'block';
   }
+}
+
+// Check if already authenticated on page load
+window.addEventListener('DOMContentLoaded', function() {
+  if (localStorage.getItem('timesheetAuth') === 'true') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    if (window.initApp) window.initApp();
+  }
+});
 </script>
 
 <script type="module">
