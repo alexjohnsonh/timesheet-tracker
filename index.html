@@ -260,11 +260,7 @@ const grandTotal = Object.values(byPerson).reduce((sum, person) => sum + person.
           unpaidMaterials += parseFloat(material.amount || 0);
         }
       });
-      const afterTax = (unpaidLabour * 0.75) + unpaidMaterials;
-
-      return { byPerson, grandTotal, totalOwed, afterTax };
-    }
-
+   
     function groupEntriesByMonth(entriesList) {
       const grouped = {};
       entriesList.forEach(entry => {
@@ -865,7 +861,7 @@ ${activeTab === 'materials' ? `
             </div>
           </div>
         </div>
-      `:
+      `;
     }
 
     // Initial render
