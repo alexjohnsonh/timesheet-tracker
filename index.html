@@ -6,10 +6,22 @@
   <title>Timesheet Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="module">
-    const correctPassword = "tereo";
+   const correctPassword = "tereo";
   const enteredPassword = prompt("Enter password to access timesheet:");
   if (enteredPassword !== correctPassword) {
-    document.body.innerHTML = "<div style='text-align:center;padding:50px;font-family:sans-serif;color:#64748b;'>Access denied</div>";
+    document.body.innerHTML = `
+      <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center max-w-md">
+          <svg class="w-16 h-16 mx-auto mb-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <h1 class="text-2xl font-bold text-slate-800 mb-2">Access Denied</h1>
+          <p class="text-slate-600">Incorrect password. Please refresh to try again.</p>
+        </div>
+      </div>
+    `;
     throw new Error("Access denied");
   }
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
