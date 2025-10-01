@@ -567,7 +567,7 @@ const paidEntriesByPersonMonth = groupEntriesByPersonThenMonth(paidEntries);
               ${person}
             </div>
             <div class="space-y-2 p-2">
-              ${Object.entries(months).sort((a, b) => b[0].localeCompare(a[0])).map(([monthKey, monthData]) => `
+            ${Object.entries(months).sort((a, b) => b[0].localeCompare(a[0])).map(([monthKey, monthData]) => `
                 <div class="border border-slate-200 rounded-lg overflow-hidden">
                   <button
                     onclick="toggleMonth('${person}-${monthKey}')"
@@ -694,54 +694,8 @@ const paidEntriesByPersonMonth = groupEntriesByPersonThenMonth(paidEntries);
     </div>
   </div>
 ` : ''}
- <input
-  type="text"
-  placeholder="Project notes"
-  value="${entry.notes || ''}"
-  onchange="updateEntry('${entry.id}', 'notes', this.value)"
-  class="border border-slate-300 rounded px-2 py-1 text-sm w-full min-w-64 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
-/>
-                                          </td>
-                                          <td class="px-4 py-2">
-                                            <span class="font-medium text-slate-700">
-                                              $${((entry.hours || 0) * rates[entry.person]).toFixed(2)}
-                                            </span>
-                                          </td>
-                                          <td class="px-4 py-2">
-                                            <button
-                                              onclick="updateEntry('${entry.id}', 'paid', ${!entry.paid})"
-                                              class="p-1 rounded ${entry.paid ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}"
-                                            >
-                                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <polyline points="20 6 9 17 4 12"></polyline>
-                                              </svg>
-                                            </button>
-                                          </td>
-                                          <td class="px-4 py-2">
-                                            <button
-                                              onclick="deleteEntry('${entry.id}')"
-                                              class="text-red-500 hover:text-red-700"
-                                            >
-                                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <polyline points="3 6 5 6 21 6"></polyline>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                              </svg>
-                                            </button>
-                                          </td>
-                                        </tr>
-                                      `).join('')}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            ` : ''}
-                          </div>
-                        `).join('')}
-                      </div>
-                    </div>
-                  </div>
-                ` : ''}
-              ` : `
+
+${activeTab === 'materials' ? `
                 <div class="p-4 md:p-6 border-b border-slate-200 flex justify-between items-center">
                   <h2 class="text-lg md:text-xl font-semibold text-slate-800">Materials & Tools</h2>
                   <button
