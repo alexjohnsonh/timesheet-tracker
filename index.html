@@ -346,14 +346,20 @@ const paidEntriesByMonth = groupEntriesByMonth(paidEntries);
                 <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
                   <h3 class="text-lg font-semibold text-slate-700 mb-3">${person}</h3>
                   <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                      <span class="text-slate-600">Hours:</span>
-                      <span class="font-medium text-slate-800">${data.hours.toFixed(1)}h</span>
-                    </div>
-                    <div class="flex justify-between">
-                      <span class="text-slate-600">Hourly Rate:</span>
-                      <span class="font-medium text-slate-800">$${rates[person]}/hr</span>
-                    </div>
+                   <div class="flex justify-between">
+  <span class="text-slate-600">Hours:</span>
+  <span class="font-medium text-slate-800">${data.hours.toFixed(1)}h</span>
+</div>
+${data.unpaidHours > 0 ? `
+  <div class="flex justify-between text-orange-600">
+    <span class="font-medium">Unpaid Hours:</span>
+    <span class="font-semibold">${data.unpaidHours.toFixed(1)}h</span>
+  </div>
+` : ''}
+<div class="flex justify-between">
+  <span class="text-slate-600">Hourly Rate:</span>
+  <span class="font-medium text-slate-800">$${rates[person]}/hr</span>
+</div>
                     <div class="flex justify-between">
                       <span class="text-slate-600">Labour:</span>
                       <span class="font-medium text-slate-800">$${(data.hours * rates[person]).toFixed(2)}</span>
