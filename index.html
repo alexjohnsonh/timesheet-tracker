@@ -54,7 +54,7 @@ window.addEventListener('DOMContentLoaded', function() {
       'ATS': 40, 
       'Estate': 50,
       'Paul': 60,
-      'Hughes': 50
+      'Shanti': 60
     };
 
     let entries = [];
@@ -85,7 +85,7 @@ window.addEventListener('DOMContentLoaded', function() {
     window.addEntry = async () => {
       const newEntry = {
         date: '',
-        person: 'Kelly',
+        person: '',
         startTime: '',
         endTime: '',
         hours: 0,
@@ -103,7 +103,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     window.addMaterial = async () => {
       const newMaterial = {
-        person: 'Kelly',
+        person: '',
         description: '',
         amount: 0,
         paid: false,
@@ -599,7 +599,7 @@ ${data.unpaidHours > 0 ? `
                                               <option ${entry.person === 'ATS' ? 'selected' : ''}>ATS</option>
                                               <option ${entry.person === 'Estate' ? 'selected' : ''}>Estate</option>
                                               <option ${entry.person === 'Paul' ? 'selected' : ''}>Paul</option>
-                                              <option ${entry.person === 'Hughes' ? 'selected' : ''}>Hughes</option>
+                                              <option ${entry.person === 'Shanti' ? 'selected' : ''}>Shanti</option>
                                             </select>
                                           </td>
                                           <td class="px-4 py-2">
@@ -700,7 +700,7 @@ ${data.unpaidHours > 0 ? `
                         <option ${material.person === 'ATS' ? 'selected' : ''}>ATS</option>
                         <option ${material.person === 'Estate' ? 'selected' : ''}>Estate</option>
                         <option ${material.person === 'Paul' ? 'selected' : ''}>Paul</option>
-                        <option ${material.person === 'Hughes' ? 'selected' : ''}>Hughes</option>
+                        <option ${material.person === 'Shanti' ? 'selected' : ''}>Shanti</option>
                       </select>
                       <input
                         type="text"
@@ -780,7 +780,7 @@ ${data.unpaidHours > 0 ? `
                                       <option ${material.person === 'ATS' ? 'selected' : ''}>ATS</option>
                                       <option ${material.person === 'Estate' ? 'selected' : ''}>Estate</option>
                                       <option ${material.person === 'Paul' ? 'selected' : ''}>Paul</option>
-                                      <option ${material.person === 'Hughes' ? 'selected' : ''}>Hughes</option>
+                                      <option ${material.person === 'Shanti' ? 'selected' : ''}>Shanti</option>
                                     </select>
                                     <input
                                       type="text"
