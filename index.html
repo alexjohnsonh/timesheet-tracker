@@ -64,7 +64,20 @@ window.addEventListener('DOMContentLoaded', function() {
     let materials = [];
     let activeTab = 'time';
     let expandedMonths = {};
-    let openDatePicker = null; // { id, year, month } - custom calendar never auto-selects a day
+    let openDatePicker = null; // { id, year, month, top, left } - custom calendar never auto-selects a day
+
+    // Firestore's onSnapshot fires twice per write (once optimistic, once server-confirmed).
+    // Rows can also move section (e.g. ticking "paid" moves a row out of the unpaid list),
+    // which shrinks the page and makes the browser clamp scroll back up on its own.
+    // Locking to the scroll position from BEFORE the click - and holding it through both
+    // snapshot firings - stops that jump, even when ticking several rows in a row.
+    let pendingScrollLock = null;
+    let scrollLockTimer = null;
+    function lockScroll() {
+      if (pendingScrollLock === null) pendingScrollLock = window.scrollY;
+      clearTimeout(scrollLockTimer);
+      scrollLockTimer = setTimeout(() => { pendingScrollLock = null; }, 2000);
+    }
 
     // Load entries from Firebase
     const entriesQuery = query(collection(db, 'entries'), orderBy('date', 'desc'));
@@ -122,6 +135,7 @@ window.addEventListener('DOMContentLoaded', function() {
     };
 
     window.updateEntry = async (id, field, value) => {
+      lockScroll();
       const entry = entries.find(e => e.id === id);
       const updated = { ...entry, [field]: value };
       
@@ -142,6 +156,7 @@ window.addEventListener('DOMContentLoaded', function() {
     };
 
     window.updateMaterial = async (id, field, value) => {
+      lockScroll();
       const material = materials.find(m => m.id === id);
       const updated = { ...material, [field]: value };
       
@@ -154,6 +169,7 @@ window.addEventListener('DOMContentLoaded', function() {
     };
 
     window.deleteEntry = async (id) => {
+      lockScroll();
       try {
         await deleteDoc(doc(db, 'entries', id));
       } catch (error) {
@@ -162,6 +178,7 @@ window.addEventListener('DOMContentLoaded', function() {
     };
 
     window.deleteMaterial = async (id) => {
+      lockScroll();
       try {
         await deleteDoc(doc(db, 'materials', id));
       } catch (error) {
@@ -220,6 +237,80 @@ window.addEventListener('DOMContentLoaded', function() {
       return `${h}:${String(m).padStart(2, '0')} ${suffix}`;
     }
 
+    // Start defaults to AM, End defaults to PM, until the user says otherwise
+    function defaultAmPm(field) {
+      return field === 'endTime' ? 'PM' : 'AM';
+    }
+
+    // Manual AM/PM overrides for rows where no time has been typed yet
+    // (nothing to derive AM/PM from, so we hold the user's toggle here until they type a number)
+    let pendingAmPm = {};
+
+    // Split a stored 24hr "HH:MM" into a 12hr number + AM/PM, for display
+    function to12HourParts(time24, field, id) {
+      if (!time24) return { display: '', ampm: pendingAmPm[`${id}_${field}`] || defaultAmPm(field) };
+      const [hStr, mStr] = time24.split(':');
+      let h = parseInt(hStr, 10);
+      const m = parseInt(mStr, 10) || 0;
+      if (isNaN(h)) return { display: '', ampm: pendingAmPm[`${id}_${field}`] || defaultAmPm(field) };
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      if (h === 0) h = 12;
+      return { display: m ? `${h}:${String(m).padStart(2, '0')}` : `${h}`, ampm };
+    }
+
+    // Accepts "8", "8.30", "8:30", "830" as a 12hr number (1-12) + minutes
+    function parse12HourNumber(str) {
+      const cleaned = (str || '').replace(/\s/g, '');
+      let hours = 0;
+      let minutes = 0;
+      if (cleaned.includes(':')) {
+        const parts = cleaned.split(':');
+        hours = parseInt(parts[0], 10) || 0;
+        minutes = parseInt(parts[1], 10) || 0;
+      } else if (cleaned.includes('.')) {
+        const parts = cleaned.split('.');
+        hours = parseInt(parts[0], 10) || 0;
+        minutes = parseInt(parts[1], 10) || 0;
+      } else {
+        hours = parseInt(cleaned, 10) || 0;
+      }
+      hours = hours % 12;
+      return { hours, minutes };
+    }
+
+    function to24Hour(hours12, minutes, ampm) {
+      let h = hours12 % 12;
+      if (ampm === 'PM') h += 12;
+      return `${String(h).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+
+    window.updateTimeNumber = (id, field, rawValue) => {
+      if (!rawValue.trim()) {
+        updateEntry(id, field, '');
+        return;
+      }
+      const entry = entries.find(e => e.id === id);
+      const current = to12HourParts(entry ? entry[field] : '', field, id);
+      const { hours, minutes } = parse12HourNumber(rawValue);
+      delete pendingAmPm[`${id}_${field}`];
+      updateEntry(id, field, to24Hour(hours, minutes, current.ampm));
+    };
+
+    window.toggleAmPm = (id, field) => {
+      const entry = entries.find(e => e.id === id);
+      const current = to12HourParts(entry ? entry[field] : '', field, id);
+      const nextAmPm = current.ampm === 'AM' ? 'PM' : 'AM';
+      if (!current.display) {
+        // Nothing typed yet - just remember the flip for when a number is entered
+        pendingAmPm[`${id}_${field}`] = nextAmPm;
+        render();
+        return;
+      }
+      const { hours, minutes } = parse12HourNumber(current.display);
+      updateEntry(id, field, to24Hour(hours, minutes, nextAmPm));
+    };
+
     function buildCalendarDays(year, month) {
       const firstOfMonth = new Date(year, month, 1);
       const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday-first grid
@@ -232,7 +323,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     function renderDatePicker(entryId) {
       if (!openDatePicker || openDatePicker.id !== entryId) return '';
-      const { year, month } = openDatePicker;
+      const { year, month, top, left } = openDatePicker;
       const monthName = new Date(year, month, 1).toLocaleDateString('en-NZ', { month: 'long', year: 'numeric' });
       const days = buildCalendarDays(year, month);
       const entry = entries.find(e => e.id === entryId);
@@ -240,7 +331,7 @@ window.addEventListener('DOMContentLoaded', function() {
       const todayStr = new Date().toISOString().split('T')[0];
       return `
         <div class="fixed inset-0 z-40" onclick="closeDatePicker()"></div>
-        <div class="absolute z-50 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg p-3 w-64" onclick="event.stopPropagation()">
+        <div class="fixed z-50 bg-white border border-slate-300 rounded-lg shadow-lg p-3 w-64" style="top:${top}px; left:${left}px;" onclick="event.stopPropagation()">
           <div class="flex items-center justify-between mb-2">
             <button type="button" onclick="navigateDatePickerMonth(-1)" class="p-1 rounded hover:bg-slate-100 text-slate-600">&#8592;</button>
             <span class="text-sm font-medium text-slate-700">${monthName}</span>
@@ -266,13 +357,24 @@ window.addEventListener('DOMContentLoaded', function() {
       `;
     }
 
-    window.toggleDatePicker = (id) => {
+    window.toggleDatePicker = (id, buttonEl) => {
       if (openDatePicker && openDatePicker.id === id) {
         openDatePicker = null;
       } else {
         const entry = entries.find(e => e.id === id);
         const base = entry && entry.date ? new Date(entry.date + 'T00:00:00') : new Date();
-        openDatePicker = { id, year: base.getFullYear(), month: base.getMonth() };
+        const popoverWidth = 256; // w-64
+        const popoverHeight = 300; // rough estimate
+        const rect = buttonEl.getBoundingClientRect();
+        let top = rect.bottom + 4;
+        let left = rect.left;
+        if (top + popoverHeight > window.innerHeight) {
+          top = Math.max(8, rect.top - popoverHeight - 4);
+        }
+        if (left + popoverWidth > window.innerWidth) {
+          left = Math.max(8, window.innerWidth - popoverWidth - 8);
+        }
+        openDatePicker = { id, year: base.getFullYear(), month: base.getMonth(), top, left };
       }
       render();
     };
@@ -288,7 +390,7 @@ window.addEventListener('DOMContentLoaded', function() {
       month += direction;
       if (month < 0) { month = 11; year -= 1; }
       if (month > 11) { month = 0; year += 1; }
-      openDatePicker = { id: openDatePicker.id, year, month };
+      openDatePicker = { ...openDatePicker, year, month };
       render();
     };
 
@@ -297,6 +399,27 @@ window.addEventListener('DOMContentLoaded', function() {
       updateEntry(id, 'date', dateStr);
       render();
     };
+
+    function renderTimeCell(entry, field) {
+      const { display, ampm } = to12HourParts(entry[field], field, entry.id);
+      return `
+        <div class="flex items-center gap-1">
+          <input
+            type="text"
+            inputmode="decimal"
+            placeholder="${field === 'endTime' ? '4.30' : '8.30'}"
+            value="${display}"
+            onchange="updateTimeNumber('${entry.id}', '${field}', this.value)"
+            class="border border-slate-300 rounded px-2 py-1 text-sm w-14 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+          />
+          <button
+            type="button"
+            onclick="toggleAmPm('${entry.id}', '${field}')"
+            class="border border-slate-300 rounded px-1.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 w-9"
+          >${ampm}</button>
+        </div>
+      `;
+    }
 
     function calculateTotals() {
       const byPerson = {};
@@ -386,7 +509,7 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     function render() {
-      const scrollPos = window.scrollY;
+      const scrollPos = pendingScrollLock !== null ? pendingScrollLock : window.scrollY;
       const totals = calculateTotals();
       const app = document.getElementById('app');
       
@@ -534,7 +657,7 @@ ${data.unpaidHours > 0 ? `
         <td class="px-4 py-3 relative">
           <button
             type="button"
-            onclick="toggleDatePicker('${entry.id}')"
+            onclick="toggleDatePicker('${entry.id}', this)"
             class="border border-slate-300 rounded px-2 py-1 text-sm w-full text-left focus:ring-2 focus:ring-slate-400 focus:border-transparent ${entry.date ? 'text-slate-800' : 'text-slate-400'}"
           >${formatDateDisplay(entry.date)}</button>
           ${renderDatePicker(entry.id)}
@@ -556,22 +679,10 @@ ${data.unpaidHours > 0 ? `
           </select>
         </td>
         <td class="px-4 py-3">
-          <input
-            type="time"
-            value="${entry.startTime || ''}"
-            onchange="updateEntry('${entry.id}', 'startTime', this.value)"
-            class="border border-slate-300 rounded px-2 py-1 text-sm w-28 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
-          />
-          ${entry.startTime ? `<div class="text-xs text-slate-400 mt-0.5">${formatTime12(entry.startTime)}</div>` : ''}
+          ${renderTimeCell(entry, 'startTime')}
         </td>
         <td class="px-4 py-3">
-          <input
-            type="time"
-            value="${entry.endTime || ''}"
-            onchange="updateEntry('${entry.id}', 'endTime', this.value)"
-            class="border border-slate-300 rounded px-2 py-1 text-sm w-28 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
-          />
-          ${entry.endTime ? `<div class="text-xs text-slate-400 mt-0.5">${formatTime12(entry.endTime)}</div>` : ''}
+          ${renderTimeCell(entry, 'endTime')}
         </td>
         <td class="px-4 py-3">
           <span class="font-medium text-slate-700">${(entry.hours || 0).toFixed(1)}</span>
@@ -665,7 +776,7 @@ ${data.unpaidHours > 0 ? `
                                           <td class="px-4 py-2 relative">
                                             <button
                                               type="button"
-                                              onclick="toggleDatePicker('${entry.id}')"
+                                              onclick="toggleDatePicker('${entry.id}', this)"
                                               class="border border-slate-300 rounded px-2 py-1 text-sm w-full text-left focus:ring-2 focus:ring-slate-400 focus:border-transparent ${entry.date ? 'text-slate-800' : 'text-slate-400'}"
                                             >${formatDateDisplay(entry.date)}</button>
                                             ${renderDatePicker(entry.id)}
@@ -687,22 +798,10 @@ ${data.unpaidHours > 0 ? `
                                             </select>
                                           </td>
                                           <td class="px-4 py-2">
-                                            <input
-                                              type="time"
-                                              value="${entry.startTime || ''}"
-                                              onchange="updateEntry('${entry.id}', 'startTime', this.value)"
-                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-28 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
-                                            />
-                                            ${entry.startTime ? `<div class="text-xs text-slate-400 mt-0.5">${formatTime12(entry.startTime)}</div>` : ''}
+                                            ${renderTimeCell(entry, 'startTime')}
                                           </td>
                                           <td class="px-4 py-2">
-                                            <input
-                                              type="time"
-                                              value="${entry.endTime || ''}"
-                                              onchange="updateEntry('${entry.id}', 'endTime', this.value)"
-                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-28 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
-                                            />
-                                            ${entry.endTime ? `<div class="text-xs text-slate-400 mt-0.5">${formatTime12(entry.endTime)}</div>` : ''}
+                                            ${renderTimeCell(entry, 'endTime')}
                                           </td>
                                           <td class="px-4 py-2">
                                             <span class="font-medium text-slate-700">${(entry.hours || 0).toFixed(1)}</span>
