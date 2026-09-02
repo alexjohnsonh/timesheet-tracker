@@ -64,6 +64,7 @@ window.addEventListener('DOMContentLoaded', function() {
     let materials = [];
     let activeTab = 'time';
     let expandedMonths = {};
+    let openDatePicker = null; // { id, year, month } - custom calendar never auto-selects a day
 
     // Load entries from Firebase
     const entriesQuery = query(collection(db, 'entries'), orderBy('date', 'desc'));
@@ -200,6 +201,103 @@ window.addEventListener('DOMContentLoaded', function() {
       return hours + (minutes / 60);
     }
 
+    function formatDateDisplay(dateStr) {
+      if (!dateStr) return 'Select date';
+      const [y, m, d] = dateStr.split('-').map(Number);
+      if (!y || !m || !d) return 'Select date';
+      return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+    }
+
+    function formatTime12(timeStr) {
+      if (!timeStr) return '';
+      const parts = timeStr.split(':');
+      let h = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) || 0;
+      if (isNaN(h)) return '';
+      const suffix = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      if (h === 0) h = 12;
+      return `${h}:${String(m).padStart(2, '0')} ${suffix}`;
+    }
+
+    function buildCalendarDays(year, month) {
+      const firstOfMonth = new Date(year, month, 1);
+      const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday-first grid
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const days = [];
+      for (let i = 0; i < startOffset; i++) days.push(null);
+      for (let d = 1; d <= daysInMonth; d++) days.push(d);
+      return days;
+    }
+
+    function renderDatePicker(entryId) {
+      if (!openDatePicker || openDatePicker.id !== entryId) return '';
+      const { year, month } = openDatePicker;
+      const monthName = new Date(year, month, 1).toLocaleDateString('en-NZ', { month: 'long', year: 'numeric' });
+      const days = buildCalendarDays(year, month);
+      const entry = entries.find(e => e.id === entryId);
+      const selectedDate = entry ? entry.date : '';
+      const todayStr = new Date().toISOString().split('T')[0];
+      return `
+        <div class="fixed inset-0 z-40" onclick="closeDatePicker()"></div>
+        <div class="absolute z-50 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg p-3 w-64" onclick="event.stopPropagation()">
+          <div class="flex items-center justify-between mb-2">
+            <button type="button" onclick="navigateDatePickerMonth(-1)" class="p-1 rounded hover:bg-slate-100 text-slate-600">&#8592;</button>
+            <span class="text-sm font-medium text-slate-700">${monthName}</span>
+            <button type="button" onclick="navigateDatePickerMonth(1)" class="p-1 rounded hover:bg-slate-100 text-slate-600">&#8594;</button>
+          </div>
+          <div class="grid grid-cols-7 gap-1 text-center text-xs text-slate-400 mb-1">
+            ${['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => `<div>${d}</div>`).join('')}
+          </div>
+          <div class="grid grid-cols-7 gap-1">
+            ${days.map(d => {
+              if (d === null) return `<div></div>`;
+              const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+              const isSelected = dateStr === selectedDate;
+              const isToday = dateStr === todayStr;
+              return `<button type="button" onclick="selectDate('${entryId}', '${dateStr}')" class="text-sm rounded py-1 ${isSelected ? 'bg-slate-800 text-white' : (isToday ? 'border border-slate-400 text-slate-700' : 'text-slate-700 hover:bg-slate-100')}">${d}</button>`;
+            }).join('')}
+          </div>
+          <div class="flex justify-between mt-2 pt-2 border-t border-slate-200">
+            <button type="button" onclick="selectDate('${entryId}', '')" class="text-xs text-slate-500 hover:text-slate-700">Clear</button>
+            <button type="button" onclick="closeDatePicker()" class="text-xs text-slate-500 hover:text-slate-700">Close</button>
+          </div>
+        </div>
+      `;
+    }
+
+    window.toggleDatePicker = (id) => {
+      if (openDatePicker && openDatePicker.id === id) {
+        openDatePicker = null;
+      } else {
+        const entry = entries.find(e => e.id === id);
+        const base = entry && entry.date ? new Date(entry.date + 'T00:00:00') : new Date();
+        openDatePicker = { id, year: base.getFullYear(), month: base.getMonth() };
+      }
+      render();
+    };
+
+    window.closeDatePicker = () => {
+      openDatePicker = null;
+      render();
+    };
+
+    window.navigateDatePickerMonth = (direction) => {
+      if (!openDatePicker) return;
+      let { year, month } = openDatePicker;
+      month += direction;
+      if (month < 0) { month = 11; year -= 1; }
+      if (month > 11) { month = 0; year += 1; }
+      openDatePicker = { id: openDatePicker.id, year, month };
+      render();
+    };
+
+    window.selectDate = (id, dateStr) => {
+      openDatePicker = null;
+      updateEntry(id, 'date', dateStr);
+      render();
+    };
+
     function calculateTotals() {
       const byPerson = {};
       
@@ -249,26 +347,6 @@ window.addEventListener('DOMContentLoaded', function() {
       return { byPerson, grandTotal, totalOwed, afterTax };
     }
 
-    const grandTotal = Object.values(byPerson).reduce((sum, person) => sum + person.total, 0);
-const totalOwed = Object.values(byPerson).reduce((sum, person) => sum + person.unpaidTotal, 0);
-
-// Calculate after-tax: 25% tax only on labour, not materials
-let unpaidLabour = 0;
-let unpaidMaterials = 0;
-entries.forEach(entry => {
-  if (!entry.paid) {
-    unpaidLabour += (entry.hours || 0) * rates[entry.person];
-  }
-});
-materials.forEach(material => {
-  if (!material.paid) {
-    unpaidMaterials += parseFloat(material.amount || 0);
-  }
-});
-const afterTax = (unpaidLabour * 0.75) + unpaidMaterials;
-
-return { byPerson, grandTotal, totalOwed, afterTax };
-
     function groupEntriesByMonth(entriesList) {
       const grouped = {};
       entriesList.forEach(entry => {
@@ -308,6 +386,7 @@ return { byPerson, grandTotal, totalOwed, afterTax };
     }
 
     function render() {
+      const scrollPos = window.scrollY;
       const totals = calculateTotals();
       const app = document.getElementById('app');
       
@@ -452,13 +531,13 @@ ${data.unpaidHours > 0 ? `
     </tr>
     ${personEntries.map(entry => `
       <tr>
-        <td class="px-4 py-3">
-          <input
-            type="date"
-            value="${entry.date || ''}"
-            onchange="updateEntry('${entry.id}', 'date', this.value)"
-            class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"
-          />
+        <td class="px-4 py-3 relative">
+          <button
+            type="button"
+            onclick="toggleDatePicker('${entry.id}')"
+            class="border border-slate-300 rounded px-2 py-1 text-sm w-full text-left focus:ring-2 focus:ring-slate-400 focus:border-transparent ${entry.date ? 'text-slate-800' : 'text-slate-400'}"
+          >${formatDateDisplay(entry.date)}</button>
+          ${renderDatePicker(entry.id)}
         </td>
         <td class="px-4 py-3">
           <select
@@ -466,6 +545,7 @@ ${data.unpaidHours > 0 ? `
             onchange="updateEntry('${entry.id}', 'person', this.value)"
             class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"
           >
+            <option value="" ${!entry.person ? 'selected' : ''} disabled hidden>Select person</option>
             <option ${entry.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
             <option ${entry.person === 'Mum' ? 'selected' : ''}>Mum</option>
             <option ${entry.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
@@ -477,21 +557,21 @@ ${data.unpaidHours > 0 ? `
         </td>
         <td class="px-4 py-3">
           <input
-            type="text"
-            placeholder="09:00"
+            type="time"
             value="${entry.startTime || ''}"
             onchange="updateEntry('${entry.id}', 'startTime', this.value)"
-            class="border border-slate-300 rounded px-2 py-1 text-sm w-20 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+            class="border border-slate-300 rounded px-2 py-1 text-sm w-28 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
           />
+          ${entry.startTime ? `<div class="text-xs text-slate-400 mt-0.5">${formatTime12(entry.startTime)}</div>` : ''}
         </td>
         <td class="px-4 py-3">
           <input
-            type="text"
-            placeholder="17:00"
+            type="time"
             value="${entry.endTime || ''}"
             onchange="updateEntry('${entry.id}', 'endTime', this.value)"
-            class="border border-slate-300 rounded px-2 py-1 text-sm w-20 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+            class="border border-slate-300 rounded px-2 py-1 text-sm w-28 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
           />
+          ${entry.endTime ? `<div class="text-xs text-slate-400 mt-0.5">${formatTime12(entry.endTime)}</div>` : ''}
         </td>
         <td class="px-4 py-3">
           <span class="font-medium text-slate-700">${(entry.hours || 0).toFixed(1)}</span>
@@ -582,13 +662,13 @@ ${data.unpaidHours > 0 ? `
                                     <tbody class="divide-y divide-slate-200">
                                       ${monthData.entries.map(entry => `
                                         <tr class="bg-green-50">
-                                          <td class="px-4 py-2">
-                                            <input
-                                              type="date"
-                                              value="${entry.date || ''}"
-                                              onchange="updateEntry('${entry.id}', 'date', this.value)"
-                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"
-                                            />
+                                          <td class="px-4 py-2 relative">
+                                            <button
+                                              type="button"
+                                              onclick="toggleDatePicker('${entry.id}')"
+                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-full text-left focus:ring-2 focus:ring-slate-400 focus:border-transparent ${entry.date ? 'text-slate-800' : 'text-slate-400'}"
+                                            >${formatDateDisplay(entry.date)}</button>
+                                            ${renderDatePicker(entry.id)}
                                           </td>
                                           <td class="px-4 py-2">
                                             <select
@@ -596,6 +676,7 @@ ${data.unpaidHours > 0 ? `
                                               onchange="updateEntry('${entry.id}', 'person', this.value)"
                                               class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                                             >
+                                              <option value="" ${!entry.person ? 'selected' : ''} disabled hidden>Select person</option>
                                               <option ${entry.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
                                               <option ${entry.person === 'Mum' ? 'selected' : ''}>Mum</option>
                                               <option ${entry.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
@@ -607,21 +688,21 @@ ${data.unpaidHours > 0 ? `
                                           </td>
                                           <td class="px-4 py-2">
                                             <input
-                                              type="text"
-                                              placeholder="09:00"
+                                              type="time"
                                               value="${entry.startTime || ''}"
                                               onchange="updateEntry('${entry.id}', 'startTime', this.value)"
-                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-20 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-28 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                                             />
+                                            ${entry.startTime ? `<div class="text-xs text-slate-400 mt-0.5">${formatTime12(entry.startTime)}</div>` : ''}
                                           </td>
                                           <td class="px-4 py-2">
                                             <input
-                                              type="text"
-                                              placeholder="17:00"
+                                              type="time"
                                               value="${entry.endTime || ''}"
                                               onchange="updateEntry('${entry.id}', 'endTime', this.value)"
-                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-20 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                                              class="border border-slate-300 rounded px-2 py-1 text-sm w-28 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                                             />
+                                            ${entry.endTime ? `<div class="text-xs text-slate-400 mt-0.5">${formatTime12(entry.endTime)}</div>` : ''}
                                           </td>
                                           <td class="px-4 py-2">
                                             <span class="font-medium text-slate-700">${(entry.hours || 0).toFixed(1)}</span>
@@ -697,6 +778,7 @@ ${data.unpaidHours > 0 ? `
                         onchange="updateMaterial('${material.id}', 'person', this.value)"
                         class="border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                       >
+                        <option value="" ${!material.person ? 'selected' : ''} disabled hidden>Select person</option>
                         <option ${material.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
                         <option ${material.person === 'Mum' ? 'selected' : ''}>Mum</option>
                         <option ${material.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
@@ -777,6 +859,7 @@ ${data.unpaidHours > 0 ? `
                                       onchange="updateMaterial('${material.id}', 'person', this.value)"
                                       class="border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                                     >
+                                      <option value="" ${!material.person ? 'selected' : ''} disabled hidden>Select person</option>
                                       <option ${material.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
                                       <option ${material.person === 'Mum' ? 'selected' : ''}>Mum</option>
                                       <option ${material.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
@@ -850,6 +933,7 @@ ${data.unpaidHours > 0 ? `
           </div>
         </div>
       `;
+      requestAnimationFrame(() => window.scrollTo(0, scrollPos));
     }
 
    // Initial render
