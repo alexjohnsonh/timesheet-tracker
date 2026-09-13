@@ -38,7 +38,7 @@ window.addEventListener('DOMContentLoaded', function() {
 <script type="module">
   async function initApp() {
     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-    const { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
     const firebaseConfig = {
       apiKey: "AIzaSyC6FbeLdjgFf0YMRPpuqfrBr_ZkDQ0jtYk",
@@ -52,11 +52,15 @@ window.addEventListener('DOMContentLoaded', function() {
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const rates = {
+    // These are the defaults used only until Firestore's 'settings/people' doc loads (or for a
+    // brand-new database, which gets seeded with these on first run) - after that, edits made
+    // in the People & Rates tab are the source of truth and sync live via onSnapshot below.
+    let people = ['Kelly', 'Mum', 'Nicki', 'ATS', 'Estate', 'Paul', 'Shanti'];
+    let rates = {
       'Kelly': 50,
       'Mum': 50,
-      'Nicki': 60, 
-      'ATS': 40, 
+      'Nicki': 60,
+      'ATS': 40,
       'Estate': 50,
       'Paul': 60,
       'Shanti': 60
@@ -98,6 +102,24 @@ window.addEventListener('DOMContentLoaded', function() {
       snapshot.forEach((doc) => {
         materials.push({ id: doc.id, ...doc.data() });
       });
+      render();
+    });
+
+    // Load people & rates from Firebase - lets rates be changed and new customers added
+    // from the People & Rates tab instead of being hardcoded.
+    const settingsRef = doc(db, 'settings', 'people');
+    onSnapshot(settingsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (Array.isArray(data.names)) people = data.names;
+        if (data.rates && typeof data.rates === 'object') rates = data.rates;
+      } else {
+        // First run against a fresh database - seed it with the defaults above so
+        // there's one shared source of truth going forward.
+        setDoc(settingsRef, { names: people, rates: rates }).catch((error) => {
+          console.error('Error seeding people/rates:', error);
+        });
+      }
       render();
     });
 
@@ -191,6 +213,48 @@ window.addEventListener('DOMContentLoaded', function() {
     window.setActiveTab = (tab) => {
       activeTab = tab;
       render();
+    };
+
+    window.updatePersonRate = async (person, newRate) => {
+      const rate = parseFloat(newRate);
+      if (isNaN(rate) || rate < 0) {
+        render(); // snap the input back to the last saved rate
+        return;
+      }
+      const updatedRates = { ...rates, [person]: rate };
+      rates = updatedRates; // update locally straight away so the UI feels instant
+      try {
+        await updateDoc(doc(db, 'settings', 'people'), { rates: updatedRates });
+      } catch (error) {
+        console.error('Error updating rate:', error);
+      }
+    };
+
+    window.addPerson = async () => {
+      const name = window.prompt('New person/customer name:');
+      if (!name || !name.trim()) return;
+      const trimmed = name.trim();
+      if (people.some(p => p.toLowerCase() === trimmed.toLowerCase())) {
+        alert(`${trimmed} is already in the list.`);
+        return;
+      }
+      const rateInput = window.prompt(`Hourly rate for ${trimmed} ($):`, '60');
+      if (rateInput === null) return;
+      const rate = parseFloat(rateInput);
+      if (isNaN(rate) || rate < 0) {
+        alert('Invalid rate - person not added.');
+        return;
+      }
+      const updatedPeople = [...people, trimmed];
+      const updatedRates = { ...rates, [trimmed]: rate };
+      people = updatedPeople;
+      rates = updatedRates;
+      render();
+      try {
+        await updateDoc(doc(db, 'settings', 'people'), { names: updatedPeople, rates: updatedRates });
+      } catch (error) {
+        console.error('Error adding person:', error);
+      }
     };
 
     window.toggleMonth = (monthKey) => {
@@ -820,6 +884,18 @@ ${data.unpaidHours > 0 ? `
                   </svg>
                   Materials
                 </button>
+                <button
+                  onclick="setActiveTab('people')"
+                  class="flex items-center gap-2 px-4 md:px-6 py-4 font-medium transition-colors ${activeTab === 'people' ? 'text-slate-800 border-b-2 border-slate-800' : 'text-slate-500 hover:text-slate-700'}"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  People & Rates
+                </button>
               </div>
 
               ${activeTab === 'time' ? `
@@ -874,13 +950,7 @@ ${data.unpaidHours > 0 ? `
             class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"
           >
             <option value="" ${!entry.person ? 'selected' : ''} disabled hidden>Select person</option>
-            <option ${entry.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
-            <option ${entry.person === 'Mum' ? 'selected' : ''}>Mum</option>
-            <option ${entry.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
-            <option ${entry.person === 'ATS' ? 'selected' : ''}>ATS</option>
-            <option ${entry.person === 'Estate' ? 'selected' : ''}>Estate</option>
-            <option ${entry.person === 'Paul' ? 'selected' : ''}>Paul</option>
-            <option ${entry.person === 'Shanti' ? 'selected' : ''}>Shanti</option>
+            ${people.map(p => `<option ${entry.person === p ? 'selected' : ''}>${p}</option>`).join('')}
           </select>
         </td>
         <td class="px-4 py-3">
@@ -993,13 +1063,7 @@ ${data.unpaidHours > 0 ? `
                                               class="border border-slate-300 rounded px-2 py-1 text-sm w-full focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                                             >
                                               <option value="" ${!entry.person ? 'selected' : ''} disabled hidden>Select person</option>
-                                              <option ${entry.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
-                                              <option ${entry.person === 'Mum' ? 'selected' : ''}>Mum</option>
-                                              <option ${entry.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
-                                              <option ${entry.person === 'ATS' ? 'selected' : ''}>ATS</option>
-                                              <option ${entry.person === 'Estate' ? 'selected' : ''}>Estate</option>
-                                              <option ${entry.person === 'Paul' ? 'selected' : ''}>Paul</option>
-                                              <option ${entry.person === 'Shanti' ? 'selected' : ''}>Shanti</option>
+                                              ${people.map(p => `<option ${entry.person === p ? 'selected' : ''}>${p}</option>`).join('')}
                                             </select>
                                           </td>
                                           <td class="px-4 py-2">
@@ -1059,7 +1123,7 @@ ${data.unpaidHours > 0 ? `
                     </div>
                   </div>
                 ` : ''}
-              ` : `
+              ` : activeTab === 'materials' ? `
                 <div class="p-4 md:p-6 border-b border-slate-200 flex justify-between items-center">
                   <h2 class="text-lg md:text-xl font-semibold text-slate-800">Materials & Tools</h2>
                   <button
@@ -1083,13 +1147,7 @@ ${data.unpaidHours > 0 ? `
                         class="border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                       >
                         <option value="" ${!material.person ? 'selected' : ''} disabled hidden>Select person</option>
-                        <option ${material.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
-                        <option ${material.person === 'Mum' ? 'selected' : ''}>Mum</option>
-                        <option ${material.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
-                        <option ${material.person === 'ATS' ? 'selected' : ''}>ATS</option>
-                        <option ${material.person === 'Estate' ? 'selected' : ''}>Estate</option>
-                        <option ${material.person === 'Paul' ? 'selected' : ''}>Paul</option>
-                        <option ${material.person === 'Shanti' ? 'selected' : ''}>Shanti</option>
+                        ${people.map(p => `<option ${material.person === p ? 'selected' : ''}>${p}</option>`).join('')}
                       </select>
                       <input
                         type="text"
@@ -1164,13 +1222,7 @@ ${data.unpaidHours > 0 ? `
                                       class="border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                                     >
                                       <option value="" ${!material.person ? 'selected' : ''} disabled hidden>Select person</option>
-                                      <option ${material.person === 'Kelly' ? 'selected' : ''}>Kelly</option>
-                                      <option ${material.person === 'Mum' ? 'selected' : ''}>Mum</option>
-                                      <option ${material.person === 'Nicki' ? 'selected' : ''}>Nicki</option>
-                                      <option ${material.person === 'ATS' ? 'selected' : ''}>ATS</option>
-                                      <option ${material.person === 'Estate' ? 'selected' : ''}>Estate</option>
-                                      <option ${material.person === 'Paul' ? 'selected' : ''}>Paul</option>
-                                      <option ${material.person === 'Shanti' ? 'selected' : ''}>Shanti</option>
+                                      ${people.map(p => `<option ${material.person === p ? 'selected' : ''}>${p}</option>`).join('')}
                                     </select>
                                     <input
                                       type="text"
@@ -1217,6 +1269,42 @@ ${data.unpaidHours > 0 ? `
                     </div>
                   </div>
                 ` : ''}
+              ` : `
+                <div class="p-4 md:p-6 border-b border-slate-200 flex justify-between items-center">
+                  <h2 class="text-lg md:text-xl font-semibold text-slate-800">People & Rates</h2>
+                  <button
+                    onclick="addPerson()"
+                    class="flex items-center gap-2 bg-slate-800 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors text-sm md:text-base"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add Person
+                  </button>
+                </div>
+
+                <div class="p-4 md:p-6 space-y-3">
+                  ${people.length === 0 ? `
+                    <p class="text-slate-500 text-sm">No people yet. Click "Add Person" to get started.</p>
+                  ` : people.map(person => `
+                    <div class="flex items-center justify-between gap-4 p-4 border border-slate-200 rounded-lg">
+                      <span class="font-medium text-slate-700">${person}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-slate-500 text-sm">$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value="${rates[person] !== undefined ? rates[person] : ''}"
+                          onchange="updatePersonRate('${person}', this.value)"
+                          class="w-24 border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                        />
+                        <span class="text-slate-500 text-sm">/hr</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
               `}
             </div>
 
