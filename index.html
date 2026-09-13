@@ -576,6 +576,9 @@ window.addEventListener('DOMContentLoaded', function() {
 
     // ---------- PDF invoice export ----------
     const BUSINESS_NAME = 'Zaine Te Reo Construction';
+    const BUSINESS_ADDRESS = ['1108 Wainui Road,', 'Whakatāne, New Zealand 3198'];
+    const BUSINESS_GST_NUMBER = '078-179-155';
+    const GST_RATE = 0.15; // NZ GST
     const BANK_ACCOUNT_NAME = 'Zaine Te Reo';
     const BANK_ACCOUNT_NUMBER = '38-9018-0699797-00';
     // Known client addresses. Add more here as you take on new clients -
@@ -583,16 +586,70 @@ window.addEventListener('DOMContentLoaded', function() {
     const clientAddresses = {
       'Shanti': '294 Stanley Road,\nWainui',
     };
+    // Per-person "include GST on invoice" tick, set from the checkbox on each summary card.
+    // Defaults to on (Zaine Te Reo Construction is GST-registered) until someone unticks it.
+    let gstEnabled = {};
 
+    window.toggleGst = (person, checked) => {
+      gstEnabled[person] = checked;
+    };
+
+    // Loading the logo through a canvas (rather than handing jsPDF the raw fetched PNG bytes)
+    // lets the browser's own image decoder do the work - jsPDF's built-in PNG decoder can choke
+    // on some interlaced PNGs and silently skip the image, so this is the more reliable path.
     function loadImageAsDataURL(url) {
-      return fetch(url)
-        .then(r => r.blob())
-        .then(blob => new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        }));
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    // jsPDF's built-in fonts (Helvetica/Times) only support WinAnsi encoding, which silently
+    // drops characters outside it - including macrons, e.g. the ā in "Whakatāne" (it would
+    // print as "Whakatne"). Rendering a line of text through canvas instead lets the browser's
+    // own font/Unicode handling draw it correctly, then it goes into the PDF as an image.
+    function textLinesToImage(lines, { fontSize = 10, bold = false, color = '#1e293b', align = 'left' } = {}) {
+      const DPI = 200;
+      const PT_TO_PX = DPI / 72;
+      const MM_PER_PX = 25.4 / DPI;
+      const fontPx = Math.round(fontSize * PT_TO_PX);
+      const lineHeightPx = Math.round(fontSize * 1.4 * PT_TO_PX);
+      const fontStr = `${bold ? 'bold ' : ''}${fontPx}px Helvetica, Arial, sans-serif`;
+      const padding = Math.round(2 * PT_TO_PX);
+
+      const measure = document.createElement('canvas').getContext('2d');
+      measure.font = fontStr;
+      let maxWidth = 1;
+      lines.forEach(line => { maxWidth = Math.max(maxWidth, measure.measureText(line).width); });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(maxWidth) + padding * 2;
+      canvas.height = lineHeightPx * lines.length + padding;
+      const ctx = canvas.getContext('2d');
+      ctx.font = fontStr;
+      ctx.fillStyle = color;
+      ctx.textBaseline = 'top';
+      ctx.textAlign = align;
+      const xPos = align === 'right' ? canvas.width - padding : padding;
+      lines.forEach((line, i) => {
+        ctx.fillText(line, xPos, i * lineHeightPx + padding / 2);
+      });
+
+      return {
+        dataUrl: canvas.toDataURL('image/png'),
+        widthMm: canvas.width * MM_PER_PX,
+        heightMm: canvas.height * MM_PER_PX,
+      };
     }
 
     window.exportPersonInvoice = async (person) => {
@@ -648,7 +705,10 @@ window.addEventListener('DOMContentLoaded', function() {
 
       const totalHours = personEntries.reduce((sum, e) => sum + (e.hours || 0), 0);
       const labourTotal = totalHours * rate;
-      const grandTotal = labourTotal + materialsTotal;
+      const subtotal = labourTotal + materialsTotal;
+      const includeGst = gstEnabled[person] !== false;
+      const gstAmount = includeGst ? subtotal * GST_RATE : 0;
+      const grandTotal = subtotal + gstAmount;
 
       const { jsPDF } = window.jspdf;
       const pdfDoc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -663,33 +723,41 @@ window.addEventListener('DOMContentLoaded', function() {
       pdfDoc.setTextColor(30, 41, 59);
       pdfDoc.text('TAX INVOICE', marginLeft, 26);
 
-      // Bill to
+      // Bill to (rendered through canvas - client names/addresses may contain macrons etc.)
       pdfDoc.setFont('helvetica', 'bold');
       pdfDoc.setFontSize(10);
+      pdfDoc.setTextColor(30, 41, 59);
       pdfDoc.text('Bill to', marginLeft, 40);
-      pdfDoc.setFont('helvetica', 'normal');
-      pdfDoc.setFontSize(10.5);
-      let billY = 46;
-      pdfDoc.text(person, marginLeft, billY);
-      addressLines.forEach(line => {
-        billY += 5;
-        pdfDoc.text(line, marginLeft, billY);
-      });
+      const billBlock = textLinesToImage([person, ...addressLines], { fontSize: 10.5, align: 'left' });
+      const billBlockTop = 43;
+      pdfDoc.addImage(billBlock.dataUrl, 'PNG', marginLeft, billBlockTop, billBlock.widthMm, billBlock.heightMm);
+      let billY = billBlockTop + billBlock.heightMm;
 
-      // Logo + business name (top right)
+      // Logo + business name + address + GST number (top right)
+      let rightY = 14;
       try {
         const logoDataUrl = await loadImageAsDataURL('logo.png');
-        pdfDoc.addImage(logoDataUrl, 'PNG', pageWidth - marginRight - 16, 14, 16, 16);
+        pdfDoc.addImage(logoDataUrl, 'PNG', pageWidth - marginRight - 16, rightY, 16, 16);
       } catch (err) {
         console.warn('Could not load logo for PDF:', err);
       }
+      rightY += 16 + 5;
       pdfDoc.setFont('times', 'bold');
       pdfDoc.setFontSize(13);
       pdfDoc.setTextColor(30, 41, 59);
-      pdfDoc.text(BUSINESS_NAME, pageWidth - marginRight, 36, { align: 'right', maxWidth: 55 });
+      const businessNameLines = pdfDoc.splitTextToSize(BUSINESS_NAME, 65);
+      pdfDoc.text(businessNameLines, pageWidth - marginRight, rightY, { align: 'right' });
+      rightY += businessNameLines.length * 5.5 + 2;
+      // Whakatāne's macron won't survive jsPDF's built-in font encoding, so this line goes
+      // through the canvas-rendered text helper too, same as the Bill to block above.
+      const addressBlock = textLinesToImage([...BUSINESS_ADDRESS, `GST: ${BUSINESS_GST_NUMBER}`], {
+        fontSize: 8.5, align: 'right', color: '#64748b',
+      });
+      pdfDoc.addImage(addressBlock.dataUrl, 'PNG', pageWidth - marginRight - addressBlock.widthMm, rightY, addressBlock.widthMm, addressBlock.heightMm);
+      rightY += addressBlock.heightMm + 2;
 
       // Description of works (optional)
-      let cursorY = Math.max(billY + 14, 62);
+      let cursorY = Math.max(billY + 14, rightY + 8, 66);
       if (description.trim()) {
         pdfDoc.setFont('helvetica', 'bold');
         pdfDoc.setFontSize(8);
@@ -723,24 +791,34 @@ window.addEventListener('DOMContentLoaded', function() {
         columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' } },
       });
 
-      let afterTableY = pdfDoc.lastAutoTable.finalY + 8;
+      let afterTableY = pdfDoc.lastAutoTable.finalY + 10;
 
-      // Totals
-      pdfDoc.setFont('helvetica', 'normal');
-      pdfDoc.setFontSize(10);
-      pdfDoc.setTextColor(100, 116, 139);
-      pdfDoc.text('Total Hours', pageWidth - marginRight - 40, afterTableY);
-      pdfDoc.setTextColor(30, 41, 59);
-      pdfDoc.text(totalHours.toFixed(1), pageWidth - marginRight, afterTableY, { align: 'right' });
+      // Totals - label column is wide enough for the longest row ("Total Due (incl. GST)"),
+      // and every row shares the same baseline spacing so nothing crowds or overlaps.
+      const totalsLabelX = pageWidth - marginRight - 68;
+      const totalsValueX = pageWidth - marginRight;
+      const totalsLineHeight = 7;
 
-      afterTableY += 8;
+      function totalsRow(label, value, { bold = false, size = 10 } = {}) {
+        pdfDoc.setFont('helvetica', bold ? 'bold' : 'normal');
+        pdfDoc.setFontSize(size);
+        pdfDoc.setTextColor(bold ? 30 : 100, bold ? 41 : 116, bold ? 59 : 139);
+        pdfDoc.text(label, totalsLabelX, afterTableY);
+        pdfDoc.setTextColor(30, 41, 59);
+        pdfDoc.text(value, totalsValueX, afterTableY, { align: 'right' });
+        afterTableY += totalsLineHeight;
+      }
+
+      totalsRow('Total Hours', totalHours.toFixed(1));
+      if (includeGst) {
+        totalsRow('Subtotal (excl. GST)', `$${subtotal.toFixed(2)}`);
+        totalsRow(`GST (${(GST_RATE * 100).toFixed(0)}%)`, `$${gstAmount.toFixed(2)}`);
+      }
+
+      afterTableY += 2;
       pdfDoc.setDrawColor(30, 41, 59);
-      pdfDoc.line(pageWidth - marginRight - 40, afterTableY - 5, pageWidth - marginRight, afterTableY - 5);
-      pdfDoc.setFont('helvetica', 'bold');
-      pdfDoc.setFontSize(13);
-      pdfDoc.setTextColor(30, 41, 59);
-      pdfDoc.text('Total Due', pageWidth - marginRight - 40, afterTableY);
-      pdfDoc.text(`$${grandTotal.toFixed(2)}`, pageWidth - marginRight, afterTableY, { align: 'right' });
+      pdfDoc.line(totalsLabelX, afterTableY - 5, totalsValueX, afterTableY - 5);
+      totalsRow(includeGst ? 'Total Due (incl. GST)' : 'Total Due', `$${grandTotal.toFixed(2)}`, { bold: true, size: 13 });
 
       // Payment details
       let payY = afterTableY + 20;
@@ -809,7 +887,7 @@ const paidEntriesByMonth = groupEntriesByMonth(paidEntries);
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
               ${Object.entries(totals.byPerson).map(([person, data]) => `
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+                <div class="relative bg-white rounded-xl shadow-sm p-6 pb-16 border border-slate-200">
                   <h3 class="text-lg font-semibold text-slate-700 mb-3">${person}</h3>
                   <div class="space-y-2 text-sm">
                    <div class="flex justify-between">
@@ -846,16 +924,28 @@ ${data.unpaidHours > 0 ? `
                         <span class="font-semibold">$${data.unpaidTotal.toFixed(2)}</span>
                       </div>
                     ` : ''}
+                    <div class="flex justify-between items-center pt-2">
+                      <label class="text-slate-600 flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          ${gstEnabled[person] !== false ? 'checked' : ''}
+                          onchange="toggleGst('${person}', this.checked)"
+                          class="w-4 h-4 accent-slate-800 cursor-pointer"
+                        />
+                        Include GST on invoice
+                      </label>
+                    </div>
                   </div>
                   <button
                     onclick="exportPersonInvoice('${person}')"
-                    class="mt-4 w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+                    title="Export PDF"
+                    aria-label="Export PDF"
+                    class="absolute bottom-0 left-0 w-11 h-11 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-white rounded-tr-lg rounded-bl-xl transition-colors"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 15V3m0 12l-4-4m4 4l4-4"></path>
                       <path stroke-linecap="round" stroke-linejoin="round" d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
                     </svg>
-                    Export PDF
                   </button>
                 </div>
               `).join('')}
