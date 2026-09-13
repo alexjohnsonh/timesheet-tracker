@@ -594,6 +594,68 @@ window.addEventListener('DOMContentLoaded', function() {
       gstEnabled[person] = checked;
     };
 
+    // Custom export-invoice modal - replaces the old chain of window.prompt() calls, which
+    // can't be styled (tiny native text boxes, square corners) and had no room for the GST
+    // tick. Resolves to null on cancel, or {invoiceNumber, address, description, includeGst}.
+    function openInvoiceModal({ person, defaultInvoiceNumber, defaultAddress, defaultGst }) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('invoiceModal');
+        const personLabel = document.getElementById('invoiceModalPerson');
+        const numberInput = document.getElementById('invoiceModalNumber');
+        const addressInput = document.getElementById('invoiceModalAddress');
+        const descInput = document.getElementById('invoiceModalDescription');
+        const gstInput = document.getElementById('invoiceModalGst');
+        const cancelBtn = document.getElementById('invoiceModalCancel');
+        const confirmBtn = document.getElementById('invoiceModalConfirm');
+
+        personLabel.textContent = ` for ${person}`;
+        numberInput.value = defaultInvoiceNumber;
+        addressInput.value = defaultAddress;
+        descInput.value = '';
+        gstInput.checked = defaultGst;
+
+        modal.style.display = 'flex';
+        numberInput.focus();
+        numberInput.select();
+
+        function cleanup() {
+          modal.style.display = 'none';
+          confirmBtn.removeEventListener('click', onConfirm);
+          cancelBtn.removeEventListener('click', onCancel);
+          modal.removeEventListener('mousedown', onBackdropClick);
+          document.removeEventListener('keydown', onKeydown);
+        }
+        function onConfirm() {
+          if (!numberInput.value.trim()) {
+            numberInput.focus();
+            return; // invoice number is required - leave the modal open
+          }
+          const result = {
+            invoiceNumber: numberInput.value.trim(),
+            address: addressInput.value,
+            description: descInput.value,
+            includeGst: gstInput.checked,
+          };
+          cleanup();
+          resolve(result);
+        }
+        function onCancel() {
+          cleanup();
+          resolve(null);
+        }
+        function onBackdropClick(e) {
+          if (e.target === modal) onCancel();
+        }
+        function onKeydown(e) {
+          if (e.key === 'Escape') onCancel();
+        }
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        modal.addEventListener('mousedown', onBackdropClick);
+        document.addEventListener('keydown', onKeydown);
+      });
+    }
+
     // Loading the logo through a canvas (rather than handing jsPDF the raw fetched PNG bytes)
     // lets the browser's own image decoder do the work - jsPDF's built-in PNG decoder can choke
     // on some interlaced PNGs and silently skip the image, so this is the more reliable path.
@@ -671,15 +733,17 @@ window.addEventListener('DOMContentLoaded', function() {
 
       const today = new Date();
       const defaultInvoiceNumber = `INV-${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-      const invoiceNumber = window.prompt('Invoice number:', defaultInvoiceNumber);
-      if (invoiceNumber === null) return; // cancelled
-
       const defaultAddress = clientAddresses[person] || '';
-      const addressInput = window.prompt(`Bill-to address for ${person} (one or more lines):`, defaultAddress);
-      if (addressInput === null) return; // cancelled
-      const addressLines = addressInput.split('\n').map(l => l.trim()).filter(Boolean);
+      const defaultGst = gstEnabled[person] !== false;
 
-      const description = window.prompt('Description of works (optional - leave blank to omit):', '') || '';
+      const modalResult = await openInvoiceModal({ person, defaultInvoiceNumber, defaultAddress, defaultGst });
+      if (!modalResult) return; // cancelled
+      const { invoiceNumber, address, description, includeGst } = modalResult;
+      const addressLines = address.split('\n').map(l => l.trim()).filter(Boolean);
+
+      // Remember the tick so the card checkbox and the next export for this person agree.
+      gstEnabled[person] = includeGst;
+      render();
 
       const rate = rates[person] || 0;
 
@@ -706,7 +770,6 @@ window.addEventListener('DOMContentLoaded', function() {
       const totalHours = personEntries.reduce((sum, e) => sum + (e.hours || 0), 0);
       const labourTotal = totalHours * rate;
       const subtotal = labourTotal + materialsTotal;
-      const includeGst = gstEnabled[person] !== false;
       const gstAmount = includeGst ? subtotal * GST_RATE : 0;
       const grandTotal = subtotal + gstAmount;
 
@@ -1463,6 +1526,56 @@ ${data.unpaidHours > 0 ? `
   <div id="app" style="display:none;">
     <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
       <div class="text-slate-600 text-lg">Loading timesheet...</div>
+    </div>
+  </div>
+
+  <!-- Export Invoice modal. Lives outside #app (which render() fully replaces on every
+       Firestore update) so it isn't wiped out or reset mid-edit if data changes elsewhere. -->
+  <div id="invoiceModal" style="display:none;" class="fixed inset-0 bg-slate-900/60 items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-7 space-y-5 max-h-[90vh] overflow-y-auto">
+      <h2 class="text-xl font-semibold text-slate-800">Export invoice<span id="invoiceModalPerson"></span></h2>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Invoice number</label>
+        <input
+          id="invoiceModalNumber"
+          type="text"
+          class="w-full border border-slate-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Bill-to address (one or more lines)</label>
+        <textarea
+          id="invoiceModalAddress"
+          rows="4"
+          class="w-full border border-slate-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-slate-400 focus:border-transparent resize-y"
+        ></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Description of works (optional)</label>
+        <textarea
+          id="invoiceModalDescription"
+          rows="4"
+          placeholder="Leave blank to omit"
+          class="w-full border border-slate-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-slate-400 focus:border-transparent resize-y"
+        ></textarea>
+      </div>
+
+      <label class="flex items-center gap-3 cursor-pointer select-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+        <input id="invoiceModalGst" type="checkbox" class="w-5 h-5 accent-slate-800 cursor-pointer" />
+        <span class="text-sm font-medium text-slate-700">Include GST (15%) on this invoice</span>
+      </label>
+
+      <div class="flex justify-end gap-3 pt-1">
+        <button id="invoiceModalCancel" type="button" class="px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-medium transition-colors">
+          Cancel
+        </button>
+        <button id="invoiceModalConfirm" type="button" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium transition-colors">
+          Export PDF
+        </button>
+      </div>
     </div>
   </div>
 </body>
