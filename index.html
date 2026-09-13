@@ -586,13 +586,9 @@ window.addEventListener('DOMContentLoaded', function() {
     const clientAddresses = {
       'Shanti': '294 Stanley Road,\nWainui',
     };
-    // Per-person "include GST on invoice" tick, set from the checkbox on each summary card.
+    // Per-person "include GST on invoice" tick, set from the checkbox in the export modal.
     // Defaults to on (Zaine Te Reo Construction is GST-registered) until someone unticks it.
     let gstEnabled = {};
-
-    window.toggleGst = (person, checked) => {
-      gstEnabled[person] = checked;
-    };
 
     // Custom export-invoice modal - replaces the old chain of window.prompt() calls, which
     // can't be styled (tiny native text boxes, square corners) and had no room for the GST
@@ -987,17 +983,6 @@ ${data.unpaidHours > 0 ? `
                         <span class="font-semibold">$${data.unpaidTotal.toFixed(2)}</span>
                       </div>
                     ` : ''}
-                    <div class="flex justify-between items-center pt-2">
-                      <label class="text-slate-600 flex items-center gap-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          ${gstEnabled[person] !== false ? 'checked' : ''}
-                          onchange="toggleGst('${person}', this.checked)"
-                          class="w-4 h-4 accent-slate-800 cursor-pointer"
-                        />
-                        Include GST on invoice
-                      </label>
-                    </div>
                   </div>
                   <button
                     onclick="exportPersonInvoice('${person}')"
